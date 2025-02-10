@@ -24,9 +24,13 @@ __pycache__/
 db.sqlite3
 *.sqlite3
 
-# Static files
+# Ignore everything inside static/img and media
 static/img/*
 media/*
+
+# But allow .gitkeep files to be tracked
+!static/img/.gitkeep
+!media/.gitkeep
 
 # Environment files
 .env
