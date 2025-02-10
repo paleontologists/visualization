@@ -35,9 +35,6 @@ media/
 # VS Code settings
 .vscode/
 
-# PyCharm settings
-.idea/
-
 # Local configurations
 *.local
 *.pot

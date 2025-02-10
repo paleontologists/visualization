@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>visualization Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/navigator.css' %}">
+</head>
+
+<body>
+    <!-- top navigation bar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Visualization</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" data-url="{% url 'introduction' %}"
+                            href="#">Introduction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-url="{% url 'models' %}" href="#">Models</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-url="{% url 'workspace' %}" href="#">Workspace</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-url="{% url 'support' %}" href="#">Support</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="btn btn-primary" href="login.html">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- sub page iframe -->
+    <iframe id="customerFrame" name="customerFrame" src="{% url 'introduction' %}"></iframe>
+
+    <script src="{% static 'js/home.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+
+</html>
