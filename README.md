@@ -1,1 +1,1 @@
-this is a website project base on django for making visualization diagram
+This is a website project based on Django to create visual charts
