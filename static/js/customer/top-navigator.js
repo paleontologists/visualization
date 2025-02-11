@@ -9,3 +9,12 @@ document.querySelectorAll('#navbarNav .nav-item .nav-link').forEach(function (na
         document.getElementById('customerFrame').src = this.dataset.url;
     });
 });
+
+// switch login button and user center when user login
+document.addEventListener("DOMContentLoaded", function () {
+    var username = document.body.dataset.username;
+    if (username !== "guest") {
+        document.getElementById("login-customer").hidden = true;
+        document.getElementById("user-center").hidden = false;
+    }
+});

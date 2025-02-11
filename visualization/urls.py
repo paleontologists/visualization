@@ -28,5 +28,6 @@ urlpatterns = [
     path("file/", include("app_file.urls")),
     path("project/", include("app_project.urls")),
     path("user/", include("app_user.urls")),
+    path("workspace/", include("app_workspace.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

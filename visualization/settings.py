@@ -76,11 +76,20 @@ TEMPLATES = [
 
 # this is the config for the path of page
 TEMPLATE_PATHS = {
+    # page for customer
     "home": "customer/home.html",
     "introduction": "customer/introduction.html",
     "models": "customer/models.html",
     "workspace": "customer/workspace.html",
     "support": "customer/support.html",
+    "login-customer": "customer/login-customer.html",
+    "register": "customer/register.html",
+    # page for admin
+    "admin-home": "admin/admin-home.html",
+    # page for user
+    "user-center": "user/user-center.html",
+    # page for workspace
+    "overview": "worksapce/overview.html",
 }
 
 

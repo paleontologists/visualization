@@ -1,6 +1,7 @@
-from django.db import models
+from django.db import IntegrityError, models
 from flask import send_file
 from visualization.settings import EMAIL_HOST_USER
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class User(models.Model):
@@ -26,6 +27,38 @@ class User(models.Model):
     # Additional fields can be added here
     def __str__(self):
         return self.email
+
+    @classmethod
+    def login(cls, username, password):
+        # Check if user exists and password matches
+        try:
+            user = User.objects.get(username=username)
+            # password is original text password but user.password is hash password
+            if check_password(password, user.password):
+                user.status = "active"
+                user.save()
+                return user.group, "login successful"
+            else:
+                return "", "Invalid credentials"
+        except User.DoesNotExist:
+            return "", "User not found"
+
+    @classmethod
+    def register(cls, username, password):
+        try:
+            user = User.objects.create(
+                username=username,
+                password=make_password(password),
+                status="inactive",  # Default status
+            )
+            user.save()
+            return "success"
+        except IntegrityError:
+            return "fail"
+
+    @classmethod
+    def user_center(cls, username):
+        return 1
 
     @classmethod
     def emailTest(cls, email=""):
