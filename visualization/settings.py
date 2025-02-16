@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "app_admin",
     "app_customer",
     "app_file",
@@ -180,3 +181,16 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # only the page in this project can use <iframe>
 X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# Ensure cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Prevent JavaScript from accessing cookies (protect against XSS attacks)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.app',  
+]
