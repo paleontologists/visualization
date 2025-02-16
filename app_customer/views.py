@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.conf import settings
 from visualization.settings import TEMPLATE_PATHS
 
-
+#测试
 # view for home page inlcuding the navigator
 def home(request):
     username = request.session.get("username", "guest")
