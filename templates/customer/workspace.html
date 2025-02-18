@@ -10,8 +10,7 @@
 </head>
 
 <body>
-
-    <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="container d-flex justify-content-center align-items-center" style="margin-top: 250px;">
         <div class="text-center">
             <h1 class="display-4 mb-4">Visualize Your Data</h1>
             <p class="lead mb-4">Try DataVizHub for free</p>
@@ -22,7 +21,7 @@
 
     <script>
         var loginUrl = "{% url 'login-customer' %}"
-        var overviewUrl = "{% url 'overview' %}"
+        var overviewUrl = "{% url 'work-home' %}"
         var username = window.parent.document.body.getAttribute('data-username');
     </script>
     <script src="{% static 'js/workspace/enter.js' %}"></script>

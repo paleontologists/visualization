@@ -90,7 +90,10 @@ TEMPLATE_PATHS = {
     # page for user
     "user-center": "user/user-center.html",
     # page for workspace
+    "work-home": "worksapce/work-home.html",
     "overview": "worksapce/overview.html",
+    "create": "worksapce/create.html",
+    "history": "worksapce/history.html",
 }
 
 
