@@ -18,21 +18,3 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("user-center").hidden = false;
     }
 });
-
-document.getElementById("customerFrame").onload = function () {
-    let iframeDocument = document.getElementById("customerFrame").contentWindow.document;
-    
-    // Make the iframe height match its content
-    let iframeBody = iframeDocument.body;
-    let iframeHtml = iframeDocument.documentElement;
-
-    let height = Math.max(
-        iframeBody.scrollHeight, 
-        iframeBody.offsetHeight, 
-        iframeHtml.clientHeight, 
-        iframeHtml.scrollHeight, 
-        iframeHtml.offsetHeight
-    );
-
-    document.getElementById("customerFrame").style.height = height + "px";
-};
