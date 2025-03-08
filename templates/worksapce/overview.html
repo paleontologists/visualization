@@ -29,39 +29,28 @@
                 </tr>
             </thead>
             <tbody>
+                {% for project in projects %}
                 <tr>
-                    <td>Data Analysis Dashboard</td>
-                    <td>March 1, 2025</td>
-                    <td><span class="badge bg-success">Completed</span></td>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.create|date:"F d, Y" }}</td>
+                    <td><span class="badge bg-info">Active</span></td>
                     <td>
-                        <button class="btn btn-sm btn-info">View</button>
-                        <button class="btn btn-sm btn-danger">Delete</button>
+                        <button class="btn btn-sm btn-info" data-id="{{ project.id }}">View</button>
+                        <button class="btn btn-sm btn-danger remove-project" data-id="{{ project.id }}">Delete</button>
                     </td>
                 </tr>
+                {% empty %}
                 <tr>
-                    <td>Weather Forecasting App</td>
-                    <td>February 25, 2025</td>
-                    <td><span class="badge bg-warning text-dark">In Progress</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-info">View</button>
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </td>
+                    <td colspan="4" class="text-center">No projects found.</td>
                 </tr>
-                <tr>
-                    <td>AI Chatbot</td>
-                    <td>January 10, 2025</td>
-                    <td><span class="badge bg-danger">Pending</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-info">View</button>
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 
     <script>
         const createProjectUrl = "{% url 'create-project' %}";
+        const loadProjectUrl = "{% url 'load-project' %}";
         const csrftoken = "{{ csrf_token }}";
     </script>
     <script src="{% static 'js/workspace/overview.js' %}"></script>

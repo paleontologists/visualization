@@ -14,13 +14,6 @@ def work_home(request):
     return render(request, to_page, data)
 
 
-def overview(request):
-    to_page = TEMPLATE_PATHS["overview"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    return render(request, to_page, data)
-
-
 def project(request):
     to_page = TEMPLATE_PATHS["project"]
     username = request.session.get("username", "guest")
@@ -40,11 +33,7 @@ def remove_session_project(request, project_id):
         if str(project["id"]) != str(project_id)
     ]
     request.session.modified = True
-    return JsonResponse(
-        {
-            "work_project_list": request.session.get("work_project_list"),
-        }
-    )
+    return JsonResponse({"state": "success"})
 
 
 def history(request):

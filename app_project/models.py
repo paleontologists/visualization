@@ -26,3 +26,11 @@ class Project(models.Model):
             diagram=diagram,
             echarts_config=echarts_config
         )
+    
+    @classmethod
+    def search_by_id(cls, project_id, user_id):
+        try:
+            return Project.objects.get(id=project_id, user_id=user_id)
+        except Project.DoesNotExist:
+            return None
+    

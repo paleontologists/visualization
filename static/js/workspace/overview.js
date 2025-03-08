@@ -12,15 +12,22 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => response.json())
             .then(data => {
-                createOrLoadProject(data.project_id, data.project_name);
+                createOrLoadProject(data.project_id, data.project_title);
             });
     });
 
     // Handle "View" button clicks for existing projects
     document.querySelectorAll(".btn-info").forEach(button => {
         button.addEventListener("click", function () {
-            const projectName = this.closest("tr").querySelector("td:first-child").innerText;
-            createOrLoadProject(projectName);
+            const projectId = this.getAttribute("data-id");
+            fetch(`${loadProjectUrl}/${projectId}`, {
+                method: "GET"
+            })
+                .then(response => response.json())
+                .then(data => {
+                    createOrLoadProject(data.project_id, data.project_title);
+                })
+                .catch(error => console.error("Error:", error));
         });
     });
 });
