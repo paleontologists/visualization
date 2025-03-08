@@ -4,39 +4,109 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector(".btn-primary").addEventListener("click", function () {
         fetch(createProjectUrl, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken
-            },
+            headers: { "X-CSRFToken": csrftoken },
             body: JSON.stringify({})
         })
             .then(response => response.json())
             .then(data => {
-                createOrLoadProject(data.project_id, data.project_title);
+                window.parent.addProjectToSidebar(data.project_id, data.project_title);
+                const tbody = document.querySelector("tbody");
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td>${data.project_id}</td>
+                    <td>${data.project_title}</td>
+                    <td>${new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })}</td>
+                    <td><span class="badge bg-info">Active</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary">View</button>
+                        <button class="btn btn-sm btn-danger delete-project">Delete</button>
+                    </td>
+                `;
+                tbody.prepend(newRow);
             });
     });
 
-    // Handle "View" button clicks for existing projects
-    document.querySelectorAll(".btn-info").forEach(button => {
-        button.addEventListener("click", function () {
-            const projectId = this.getAttribute("data-id");
-            fetch(`${loadProjectUrl}/${projectId}`, {
-                method: "GET"
+    // Load existing and dynamically added projects
+    document.querySelector("tbody").addEventListener("click", function (event) {
+        if (event.target.classList.contains("btn-info")) {
+            const row = event.target.closest("tr");
+            const projectId = row.querySelector("td:first-child").innerText.trim();
+            const projectTitle = row.querySelector("td:nth-child(2)").innerText.trim();
+            if (window.parent.workProjectList.some(project => project.id == projectId)) {
+                console.log(123123);
+                const existingProject = window.parent.document.getElementById(`project-${projectId}`);
+                window.parent.activeSidebar(existingProject.querySelector(".nav-link"), existingProject.querySelector(".nav-link").dataset.url);
+                return;
+            }
+            fetch(`${loadProjectUrl}/${projectId}`, { method: "GET" })
+                .then(response => response.json())
+                .then(data => {
+                    window.parent.addProjectToSidebar(projectId, projectTitle);
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    });
+    // Delete project using event delegation
+    document.querySelector("tbody").addEventListener("click", function (event) {
+        if (event.target.classList.contains("delete-project")) {
+            const row = event.target.closest("tr");
+            const projectId = row.querySelector("td:first-child").innerText.trim();
+            fetch(deleteProjectUrl, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken },
+                body: JSON.stringify({ "project_id": projectId })
             })
                 .then(response => response.json())
                 .then(data => {
-                    createOrLoadProject(data.project_id, data.project_title);
+                    showAlert("Project deleted successfully!", "success");
+                    row.remove();
+                    window.parent.removeProjectFromSidebar(projectId);
                 })
                 .catch(error => console.error("Error:", error));
-        });
+        }
+    });
+
+    // Initial execution to update buttons
+    updateProjectButtons(true);
+
+    // event listener for messages from parent
+    window.addEventListener("message", function (event) {
+        if (event.data && event.data.type === "updateProjectList") {
+            updateProjectButtons(); // Execute function when message is received
+        }
     });
 });
 
-// create a new project and update UI
-function createOrLoadProject(projectId, projectName) {
-    const projectUrl = "project";
-    window.parent.addProjectToSidebar(projectId, projectName, projectUrl);
+// this make Open -> View
+function updateProjectButtons(init = false) {
+    document.querySelectorAll("tbody tr").forEach(row => {
+        const projectId = parseInt(row.cells[0].textContent.trim()); // Get project ID from first column
+        const button = row.querySelector(".btn-info, .btn-secondary");
+        const buttonText = button.textContent.trim()
+        const isInList = window.parent.workProjectList.some(p => p.id == projectId)
+        if (buttonText == "Open" && isInList) {
+            button.textContent = "View"; // Change text to "View"
+            button.classList.remove("btn-info");
+            button.classList.add("btn-secondary"); // Change color to gray
+        } else if (buttonText == "View" && !isInList) {
+            button.textContent = "Open";
+            button.classList.remove("btn-secondary");
+            button.classList.add("btn-info");
+        }
+    });
+}
+
+
+// Function to show a floating alert message
+function showAlert(message, type = "success") {
+    const alertBox = document.createElement("div");
+    alertBox.className = `alert alert-${type} position-fixed top-0 end-0 m-3 p-2`;
+    alertBox.style.zIndex = "1050"; // Ensure it's on top
+    alertBox.innerText = message;
+    document.body.appendChild(alertBox);
+
+    // Automatically remove alert after 2 seconds
     setTimeout(() => {
-        window.parent.activeSidebar(projectName, projectUrl);
-    }, 100);
+        alertBox.remove();
+    }, 2000);
 }

@@ -1,6 +1,8 @@
 from django.db import models
 from app_user.models import User
 from app_file.models import File
+import random
+import string
 
 
 class Project(models.Model):
@@ -17,20 +19,19 @@ class Project(models.Model):
         db_table = "project"
 
     @classmethod
-    def create_project(cls, user_id, title="New project", description="Project description", file=None, diagram=None, echarts_config=None):
-        return Project.objects.create(
-            user=User.objects.get(id=user_id),
-            file=file,
-            title=title,
-            description=description,
-            diagram=diagram,
-            echarts_config=echarts_config
-        )
-    
+    def create_project(cls, user_id):
+        project = cls(user=User.objects.get(id=user_id))
+        project.title = f"Project {generate_random_string()}"
+        project.description = f"This is {project.title}!"
+        project.save()
+        return project
+
     @classmethod
-    def search_by_id(cls, project_id, user_id):
+    def customer_search_id(cls, project_id, user_id):
         try:
             return Project.objects.get(id=project_id, user_id=user_id)
         except Project.DoesNotExist:
             return None
-    
+
+def generate_random_string(length=5):
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))

@@ -22,6 +22,7 @@
         <table class="table table-bordered table-hover">
             <thead class="table-primary">
                 <tr>
+                    <th>id</th>
                     <th>Project Name</th>
                     <th>Date Created</th>
                     <th>Status</th>
@@ -31,12 +32,13 @@
             <tbody>
                 {% for project in projects %}
                 <tr>
+                    <td>{{ project.id }}</td>
                     <td>{{ project.title }}</td>
                     <td>{{ project.create|date:"F d, Y" }}</td>
                     <td><span class="badge bg-info">Active</span></td>
                     <td>
-                        <button class="btn btn-sm btn-info" data-id="{{ project.id }}">View</button>
-                        <button class="btn btn-sm btn-danger remove-project" data-id="{{ project.id }}">Delete</button>
+                        <button class="btn btn-sm btn-info">Open</button>
+                        <button class="btn btn-sm btn-danger delete-project">Delete</button>
                     </td>
                 </tr>
                 {% empty %}
@@ -47,10 +49,11 @@
             </tbody>
         </table>
     </div>
-
     <script>
+        const toOverview = "{% url 'overview' %}";
         const createProjectUrl = "{% url 'create-project' %}";
         const loadProjectUrl = "{% url 'load-project' %}";
+        const deleteProjectUrl = "{% url 'delete-project' %}";
         const csrftoken = "{{ csrf_token }}";
     </script>
     <script src="{% static 'js/workspace/overview.js' %}"></script>

@@ -1,3 +1,4 @@
+import json
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -50,7 +51,7 @@ def load_project(request, project_id):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project = Project.search_by_id(project_id, user_id)
+    project = Project.customer_search_id(project_id, user_id)
     if project == None:
         return render(request, to_page, data)
     request.session.modified = True
@@ -63,3 +64,24 @@ def load_project(request, project_id):
             "project_title": project.title,
         }
     )
+
+
+# delete project
+def delete_project(request):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    user_id = request.session.get("id")
+    project_id = json.loads(request.body).get("project_id")
+    project = Project.customer_search_id(project_id, user_id)
+    if project == None:
+        return render(request, to_page, data)
+    project.delete()
+    request.session["work_project_list"] = [
+        project
+        for project in request.session["work_project_list"]
+        if str(project["id"]) != str(project_id)
+    ]
+    return JsonResponse({"success": True})

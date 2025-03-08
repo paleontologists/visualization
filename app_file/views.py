@@ -1,3 +1,6 @@
 from django.shortcuts import render
 
-# Create your views here.
+from visualization.settings import TEMPLATE_PATHS
+
+def work_file_manager(request):
+    return render(request, TEMPLATE_PATHS["work-file"])

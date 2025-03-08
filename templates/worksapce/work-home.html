@@ -21,11 +21,11 @@
             </div>
             <nav class="nav nav-pills flex-column" id="sideNav">
                 <a id="workspace-overview" class="nav-link active" href="#" data-url="{% url 'overview' %}">Overview</a>
-                <a class="nav-link" href="#" data-url="{% url 'history' %}">History</a>
+                <a class="nav-link" href="#" data-url="{% url 'work-file-manager' %}">file manager</a>
                 {% for project in request.session.work_project_list %}
                 <div class="d-flex align-items-center justify-content-between nav-item" id="project-{{ project.id }}">
                     <a class="nav-link flex-grow-1" href="#" data-url="{% url 'project' %}">{{ project.name }}</a>
-                    <button class="btn btn-sm btn-danger ms-2 remove-project" data-id="{{ project.id }}">x</button>
+                    <button class="btn btn-sm btn-danger ms-2 remove-project">x</button>
                 </div>
                 {% endfor %}
             </nav>
@@ -37,10 +37,15 @@
                 style="width: 100%; height: 90vh; border: none;"></iframe>
         </div>
     </div>
+    <div display="hidden" id="work_project_list">
+        {{request.session.work_project_list|json_script:"workProjectListData" }}
+    </div>
     <script>
-        // const toOverview = "{% url 'overview' %}";
+        var workProjectList = JSON.parse(document.getElementById("work_project_list").textContent);
+        const sideNavProjectUrl = "{% url 'project' %}";
         const removeSessionProject = "{% url 'remove-session-project' %}";
     </script>
+    <script src="{% static 'js/workspace/work-home.js' %}"></script>
     <script src="{% static 'js/workspace/left-navigator.js' %}"></script>
 </body>
 
