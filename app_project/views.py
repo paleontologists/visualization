@@ -43,8 +43,8 @@ def create_project(request):
     )
 
 
-# load project
-def load_project(request, project_id):
+# open project
+def open_project(request, project_id):
     to_page = TEMPLATE_PATHS["home"]
     username = request.session.get("username", "guest")
     data = {"username": username}
@@ -85,3 +85,17 @@ def delete_project(request):
         if str(project["id"]) != str(project_id)
     ]
     return JsonResponse({"success": True})
+
+# load project
+def load_project(request, project_id):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    user_id = request.session.get("id")
+    project = Project.customer_search_id(project_id, user_id)
+    if project == None:
+        return render(request, to_page, data)
+    to_page = TEMPLATE_PATHS["project"]
+    return render(request, to_page, data)
