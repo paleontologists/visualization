@@ -8,6 +8,7 @@
     <title>Left Side Navigator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/work-left-navigator.css' %}">
 </head>
 
 <body>
@@ -19,9 +20,14 @@
                 <h4 class="fw-bold text-primary">DataVizHub</h4>
             </div>
             <nav class="nav nav-pills flex-column" id="sideNav">
-                <a class="nav-link active" href="#" data-url="{% url 'overview' %}">Overview</a>
-                <a class="nav-link" href="#" data-url="{% url 'create' %}">Create</a>
+                <a id="workspace-overview" class="nav-link active" href="#" data-url="{% url 'overview' %}">Overview</a>
                 <a class="nav-link" href="#" data-url="{% url 'history' %}">History</a>
+                {% for project in request.session.work_project_list %}
+                <div class="d-flex align-items-center justify-content-between nav-item" id="project-{{ project.id }}">
+                    <a class="nav-link flex-grow-1" href="#" data-url="{% url 'project' %}">{{ project.name }}</a>
+                    <button class="btn btn-sm btn-danger ms-2 remove-project" data-id="{{ project.id }}">x</button>
+                </div>
+                {% endfor %}
             </nav>
         </div>
 
@@ -31,7 +37,10 @@
                 style="width: 100%; height: 90vh; border: none;"></iframe>
         </div>
     </div>
-
+    <script>
+        // const toOverview = "{% url 'overview' %}";
+        const removeSessionProject = "{% url 'remove-session-project' %}";
+    </script>
     <script src="{% static 'js/workspace/left-navigator.js' %}"></script>
 </body>
 
