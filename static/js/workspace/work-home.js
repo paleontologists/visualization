@@ -69,7 +69,10 @@ function activeSidebar(linkElement, projectUrl) {
 
 // Function to remove a project from the sidebar
 function removeProjectFromSidebar(projectId) {
-    if (workProjectList.some(p => p.id == projectId))
+    if (workProjectList.some(p => p.id == projectId)) {
+        const activeProject = document.querySelector("#sideNav .nav-link.active");
+        if (activeProject && activeProject.dataset.url.includes(`${sideNavProjectUrl}/${projectId}`))
+            window.parent.activeSidebar(overview, toOverview);
         fetch(`${removeSessionProject}/${projectId}`, { method: 'GET' })
             .then(response => response.json())
             .then(data => {
@@ -80,4 +83,5 @@ function removeProjectFromSidebar(projectId) {
                 iframe.contentWindow.postMessage({ type: "updateProjectList" }, "*");
             })
             .catch(error => console.error('Error:', error));
+    }
 }

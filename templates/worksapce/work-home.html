@@ -25,7 +25,7 @@
                 <a class="nav-link" href="#" data-url="{% url 'work-file-manager' %}">file manager</a>
                 {% for project in request.session.work_project_list %}
                 <div class="d-flex align-items-center justify-content-between nav-item" id="project-{{ project.id }}">
-                    <a class="nav-link flex-grow-1" href="#" data-url="{% url 'project' %}">{{ project.name }}</a>
+                    <a class="nav-link flex-grow-1" href="#" data-url="{% url 'load-project' project.id %}">{{ project.name }}</a>
                     <button class="btn btn-sm btn-danger ms-2 remove-project">x</button>
                 </div>
                 {% endfor %}
@@ -43,11 +43,12 @@
     </div>
     <script>
         var workProjectList = JSON.parse(document.getElementById("work_project_list").textContent);
-        const sideNavProjectUrl = "{% url 'project' %}";
+        const overview = document.getElementById("workspace-overview");
+        const toOverview = "{% url 'overview' %}";
+        const sideNavProjectUrl = "{% url 'load-project' %}";
         const removeSessionProject = "{% url 'remove-session-project' %}";
     </script>
     <script src="{% static 'js/workspace/work-home.js' %}"></script>
-    <script src="{% static 'js/workspace/left-navigator.js' %}"></script>
 </body>
 
 </html>

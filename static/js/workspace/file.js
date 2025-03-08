@@ -48,7 +48,6 @@ function loadFiles() {
                 fileList.appendChild(listItem);
             });
         })
-        .catch(error => console.error("Error loading files:", error));
 }
 
 // Function to delete a file

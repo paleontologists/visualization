@@ -4,7 +4,7 @@ from app_workspace.views import *
 
 urlpatterns = [
     path("work_home", view=work_home, name="work-home"),
-    path("project", view=project, name="project"),
+    # path("project", view=project, name="project"),
     path(
         "remove_session_project",
         remove_session_project,

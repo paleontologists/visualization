@@ -26,26 +26,24 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
-    // Load existing and dynamically added projects
+    // open existing and dynamically added projects
     document.querySelector("tbody").addEventListener("click", function (event) {
+        const row = event.target.closest("tr");
+        if (!row) return;
+        const projectId = row.querySelector("td:first-child").innerText.trim();
         if (event.target.classList.contains("btn-info")) {
-            const row = event.target.closest("tr");
-            const projectId = row.querySelector("td:first-child").innerText.trim();
             const projectTitle = row.querySelector("td:nth-child(2)").innerText.trim();
-            if (window.parent.workProjectList.some(project => project.id == projectId)) {
-                console.log(123123);
-                const existingProject = window.parent.document.getElementById(`project-${projectId}`);
-                window.parent.activeSidebar(existingProject.querySelector(".nav-link"), existingProject.querySelector(".nav-link").dataset.url);
-                return;
-            }
-            fetch(`${loadProjectUrl}/${projectId}`, { method: "GET" })
+            fetch(`${openProjectUrl}/${projectId}`, { method: "GET" })
                 .then(response => response.json())
-                .then(data => {
-                    window.parent.addProjectToSidebar(projectId, projectTitle);
-                })
+                .then(data => { window.parent.addProjectToSidebar(projectId, projectTitle); })
                 .catch(error => console.error("Error:", error));
+        } else if (event.target.classList.contains("btn-secondary")) {
+            const existingProject = window.parent.document.getElementById(`project-${projectId}`);
+            const projectUrl = `${loadProjectUrl}/${projectId}`;
+            window.parent.activeSidebar(existingProject.querySelector(".nav-link"), projectUrl);
         }
     });
+
     // Delete project using event delegation
     document.querySelector("tbody").addEventListener("click", function (event) {
         if (event.target.classList.contains("delete-project")) {

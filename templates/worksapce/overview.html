@@ -53,8 +53,9 @@
     <script>
         const toOverview = "{% url 'overview' %}";
         const createProjectUrl = "{% url 'create-project' %}";
-        const loadProjectUrl = "{% url 'open-project' %}";
+        const openProjectUrl = "{% url 'open-project' %}";
         const deleteProjectUrl = "{% url 'delete-project' %}";
+        const loadProjectUrl = "{% url 'load-project' %}";
         const csrftoken = "{{ csrf_token }}";
     </script>
     <script src="{% static 'js/workspace/overview.js' %}"></script>
