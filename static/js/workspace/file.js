@@ -1,84 +1,140 @@
+// Load files on page load
 document.addEventListener("DOMContentLoaded", function () {
     loadFiles();
+    document.getElementById("uploadBtn").addEventListener("click", uploadFile);
 });
 
-// Function to load files dynamically
+function uploadFile() {
+    let fileInput = document.getElementById("fileInput");
+    if (!fileInput.files.length) {
+        alert("Please select a file to upload.");
+        return;
+    }
+    let formData = new FormData();
+    formData.append("file", fileInput.files[0]); // Append file to FormData
+    fetch(uploadUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            fileInput.value = ""; // Clear input after upload
+            if (data.success) loadFiles(); // Refresh file list
+            else alert("Upload failed: " + data.error);
+        })
+        .catch(error => console.error("Upload error:", error));
+}
+
+// ✅ Function to Retrieve CSRF Token from Cookies
+function getCSRFToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+}
+
 let currentPath = []; // Tracks the current navigation path
 let fileStructure = {}; // Stores the entire file structure in memory
 
+// request file tree from django
 function loadFiles() {
-    fetch(updateUrl, { method: "GET" })
+    fetch(loadFilesUrl, { method: "GET" })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                fileStructure = data.structure; // Store the entire structure in memory
-                console.log("File Structure Loaded:", fileStructure);
-                displayFiles(currentPath);
-            } else {
-                alert("Failed to load files: " + data.error);
-            }
+            if (!data.success) return;
+            fileStructure = data.structure; // Store the entire structure in memory
+            displayFiles(currentPath);
         })
         .catch(error => console.error("Error loading files:", error));
 }
 
+// display file tree in page
 function displayFiles(path = []) {
     let fileList = document.getElementById("fileList");
     let pathDisplay = document.getElementById("filePath");
-    fileList.innerHTML = ""; // Clear previous list
-    
-    // ✅ Update Path Display (Breadcrumb)
+    fileList.innerHTML = "";
     updatePathDisplay(path);
 
-    // ✅ Navigate through the stored file structure
     let folderContents = fileStructure;
     for (const folder of path) {
         if (folderContents[folder] && typeof folderContents[folder] === "object") {
-            folderContents = folderContents[folder]; // Navigate deeper
+            folderContents = folderContents[folder];
         } else {
             console.error("Invalid path:", folder);
             return;
         }
     }
 
-    // ✅ Create File/Folder List
+    // ✅ Add "Back" option
+    if (path.length > 0) {
+        let backItem = document.createElement("li");
+        backItem.classList.add("file-item", "back-item");
+        backItem.textContent = "⬅️ Back";
+        backItem.style.cursor = "pointer";
+        backItem.onclick = function () {
+            currentPath.pop();
+            displayFiles(currentPath);
+        };
+        fileList.appendChild(backItem);
+    }
+
+    // ✅ Create Folder/File List
     for (const key in folderContents) {
         let item = document.createElement("li");
-        item.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+        item.classList.add("file-item", "d-flex", "justify-content-between", "align-items-center");
+
+        let nameSpan = document.createElement("span");
+        let modifyTimeSpan = document.createElement("span");
+        modifyTimeSpan.classList.add("modify-time");
 
         if (typeof folderContents[key] === "object") {
             // ✅ Folder: Clicking navigates inside
-            let folderLink = document.createElement("span");
-            folderLink.textContent = "📁 " + key;
-            folderLink.style.cursor = "pointer";
-            folderLink.onclick = function () {
+            nameSpan.textContent = "📁 " + key;
+            nameSpan.style.cursor = "pointer";
+            nameSpan.onclick = function () {
                 currentPath.push(key);
-                displayFiles(currentPath); // ✅ Load from memory instead of Django
+                displayFiles(currentPath);
             };
-            item.appendChild(folderLink);
         } else {
             // ✅ File: Clicking opens the file
             let fileLink = document.createElement("a");
-            fileLink.href = folderContents[key]; // File URL
-            fileLink.textContent = key; // File name
-            fileLink.target = "_blank"; // Open in new tab
+            fileLink.href = folderContents[key];
+            fileLink.textContent = "📄" + key;
+            fileLink.target = "_blank";
             fileLink.classList.add("custom-link");
-            item.appendChild(fileLink);
+
+            nameSpan.appendChild(fileLink);
+            modifyTimeSpan.textContent = folderContents[key]["modify_time"] || "N/A"; // Show modify time if available
         }
 
-        // ✅ Add Delete Button
-        let deleteButton = document.createElement("span");
-        deleteButton.textContent = "Delete";
-        deleteButton.classList.add("delete-btn");
-        deleteButton.onclick = function () {
-            deleteFileOrFolder(key, path);
-        };
-        item.appendChild(deleteButton);
+        item.appendChild(nameSpan);
+        item.appendChild(modifyTimeSpan);
+
+        // ✅ Action Buttons
+        let actionContainer = document.createElement("div");
+        actionContainer.classList.add("action-buttons");
+
+        let renameButton = createActionButton("Rename ", () => renameFiles(key));
+        let moveButton = createActionButton("Move ", () => moveFile(key));
+        let deleteButton = createActionButton("Delete", () => deleteFileOrFolder(key, path));
+
+        actionContainer.appendChild(renameButton);
+        actionContainer.appendChild(moveButton);
+        actionContainer.appendChild(deleteButton);
+        item.appendChild(actionContainer);
 
         fileList.appendChild(item);
     }
+
+    // ✅ Add "Create Folder" Button
+    let createFolderButton = document.createElement("button");
+    createFolderButton.textContent = "📁 Create Folder";
+    createFolderButton.classList.add("btn", "btn-sm", "btn-primary", "mt-2");
+    createFolderButton.onclick = createFolder;
+    fileList.appendChild(createFolderButton);
 }
 
-// ✅ Update Path Display (Breadcrumb)
+// ✅ Update Path Display
 function updatePathDisplay(path) {
     let pathDisplay = document.getElementById("filePath");
     pathDisplay.innerHTML = ""; // Clear previous path
@@ -88,7 +144,7 @@ function updatePathDisplay(path) {
     homeLink.style.cursor = "pointer";
     homeLink.onclick = function () {
         currentPath = [];
-        displayFiles(currentPath); // ✅ Load from memory instead of Django
+        displayFiles(currentPath);
     };
     pathDisplay.appendChild(homeLink);
 
@@ -104,69 +160,97 @@ function updatePathDisplay(path) {
         folderLink.style.cursor = "pointer";
         folderLink.onclick = function () {
             currentPath = tempPath.slice(0, i + 1);
-            displayFiles(currentPath); // ✅ Load from memory instead of Django
+            displayFiles(currentPath);
         };
 
         pathDisplay.appendChild(folderLink);
     }
 }
 
-// ✅ Function to Delete File or Folder
-function deleteFileOrFolder(name, path) {
-    let confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
-    if (!confirmDelete) return;
-
-    let fullPath = [...path, name].join("/"); // Convert to string path
-    fetch(deleteUrl, { // Make sure deleteUrl is defined in your Django template
+// ✅ Function to Create Folder
+function createFolder() {
+    let folderName = prompt("Enter folder name:");
+    if (!folderName) return;
+    let fullPath = [...currentPath, folderName].join("/");
+    fetch(createFolderUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+        headers: { "X-CSRFToken": csrftoken },
         body: JSON.stringify({ path: fullPath })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert(`"${name}" deleted successfully.`);
-                loadFiles(path); // Refresh the file list
-            } else {
-                alert("Failed to delete: " + data.error);
-            }
+            if (data.success) loadFiles();
+            else alert("Failed to create folder: " + data.error);
         })
-        .catch(error => console.error("Error deleting file/folder:", error));
+        .catch(error => console.error("Error creating folder:", error));
 }
 
-
-// Function to delete a file
-function deleteFile(fileId) {
-    fetch(`${deleteUrl}${fileId}/`, { method: "DELETE" })
+// ✅ Function to Rename file and folder
+function renameFiles(oldName) {
+    let newName = prompt(`Enter new name for "${oldName}":`);
+    if (!newName) return;
+    let oldPath = [...currentPath, oldName].join("/");
+    let newPath = [...currentPath, newName].join("/");
+    fetch(renameFilesUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ old_path: oldPath, new_path: newPath })
+    })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert("File deleted successfully!");
-                loadFiles();
-            } else {
-                alert("Delete failed: " + data.error);
-            }
+            if (data.success) loadFiles();
+            else alert("Failed to rename folder: " + data.error);
         })
-        .catch(error => console.error("Delete error:", error));
+        .catch(error => console.error("Error renaming folder:", error));
 }
 
-// Function to update a file
-function updateFile(fileId, fileName) {
-    const newFile = prompt(`Enter the new file name for replacing "${fileName}":`);
-    if (!newFile) return;
-
-    const formData = new FormData();
-    formData.append("file", newFile);
-
-    fetch(`${updateUrl}${fileId}/`, { method: "POST", body: formData })
+// ✅ Function to Move File
+function moveFile(fileName) {
+    let targetFolder = prompt(`Enter target folder for "${fileName}":`);
+    // Allow empty folder path by keeping the file in the same directory
+    if (targetFolder === null) targetFolder = "";
+    let currentFilePath = [...currentPath, fileName].join("/");
+    // If blank, keep the same path
+    let targetFilePath = targetFolder ? `${targetFolder}/${fileName}` : fileName;
+    fetch(moveFileUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ old_path: currentFilePath, new_path: targetFilePath })
+    })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert("File updated successfully!");
-                loadFiles();
-            } else {
-                alert("Update failed: " + data.error);
-            }
+            if (data.success) loadFiles();
+            else alert("Failed to move file: " + data.error);
         })
-        .catch(error => console.error("Update error:", error));
+        .catch(error => console.error("Error moving file:", error));
 }
+
+// delete file or folder
+function deleteFileOrFolder(fileKey, filePath) {
+    if (!confirm(`Are you sure you want to delete "${fileKey}"?`)) return;
+    // Ensure filePath does not start with a "/"
+    let cleanFilePath = (filePath + "/" + fileKey).replace(/^\/+/, "");
+    fetch(deleteFileUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ path: cleanFilePath })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) loadFiles();  // Refresh file list
+            else alert("Failed to delete: " + data.error);
+        })
+        .catch(error => console.error("Error deleting file:", error));
+}
+
+
+// ✅ Function to Create Action Button
+function createActionButton(text, action) {
+    let button = document.createElement("span");
+    button.textContent = text;
+    button.classList.add("action-btn");
+    button.style.cursor = "pointer";
+    button.onclick = action;
+    return button;
+}
+

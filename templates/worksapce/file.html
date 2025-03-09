@@ -36,8 +36,11 @@
     <script>
         const uploadUrl = "{% url 'work-upload-file' %}";
         const deleteUrl = "/delete_file/";
-        const updateUrl = "{% url 'work-load-file' %}";
         const loadFilesUrl = "{% url 'work-load-file' %}";
+        const createFolderUrl = "{% url 'work-create-folder' %}";
+        const renameFilesUrl = "{% url 'work-rename-file' %}";
+        const moveFileUrl = "{% url 'work-move-file' %}";
+        const deleteFileUrl = "{% url 'work-delete-file' %}";
         const csrftoken = "{{ csrf_token }}";
     </script>
     <script src="{% static 'js/workspace/file.js' %}"></script>

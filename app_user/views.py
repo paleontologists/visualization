@@ -1,6 +1,4 @@
-from django.http import HttpResponse
 from django.shortcuts import render
-from flask import redirect
 from app_user.models import User
 from visualization.settings import TEMPLATE_PATHS
 
