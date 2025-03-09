@@ -18,4 +18,5 @@ urlpatterns = [
         view=load_project,
         name="load-project",
     ),
+    path("choose_file", view=choose_file, name="choose-file"),
 ]

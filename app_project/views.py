@@ -1,8 +1,11 @@
 import json
+import os
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
+from app_file.models import File
 from app_project.models import Project
+from visualization import settings
 from visualization.settings import TEMPLATE_PATHS
 
 
@@ -86,6 +89,7 @@ def delete_project(request):
     ]
     return JsonResponse({"success": True})
 
+
 # load project
 def load_project(request, project_id):
     to_page = TEMPLATE_PATHS["home"]
@@ -97,5 +101,32 @@ def load_project(request, project_id):
     project = Project.customer_search_id(project_id, user_id)
     if project == None:
         return render(request, to_page, data)
+    data = {"project": project}
     to_page = TEMPLATE_PATHS["project"]
     return render(request, to_page, data)
+
+
+# choose a file for project
+def choose_file(request):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    project_id = request.POST.get("project_id")
+    user_id = request.session.get("id")
+    project = Project.customer_search_id(project_id, user_id)
+    if not project:
+        return JsonResponse({"success": False, "error": "Missing project"})
+    file_path = request.POST.get("file_path")
+    full_path = os.path.join(f"{user_id}/file", file_path).replace("\\", "/").strip()
+    file = File.get_file(full_path, user_id)
+    if not file:
+        return JsonResponse({"success": False})
+    try:
+        project.file = file
+        print(file.file)
+        # project.save()
+        return JsonResponse({"success": True, "message": "File successfully chosen"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

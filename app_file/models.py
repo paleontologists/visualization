@@ -21,6 +21,15 @@ class File(models.Model):
     class Meta:
         db_table = "file"
 
+    # get the file by file FileField
+    @classmethod
+    def get_file(cls, full_path, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            return File.objects.get(file=full_path, user=user)
+        except Exception as e:
+            return None
+
     @classmethod
     def upload_file(cls, user_id, uploaded_file, title=None, description=""):
         return File.objects.create(
@@ -88,7 +97,11 @@ class File(models.Model):
     @classmethod
     def delete_file(cls, full_path):
         try:
-            shutil.rmtree(full_path) if os.path.isdir(full_path) else os.remove(full_path)
+            (
+                shutil.rmtree(full_path)
+                if os.path.isdir(full_path)
+                else os.remove(full_path)
+            )
             return True
         except Exception as e:
             return False

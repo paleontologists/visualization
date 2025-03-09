@@ -1,8 +1,17 @@
-// Load files on page load
-document.addEventListener("DOMContentLoaded", function () {
-    loadFiles();
-    document.getElementById("uploadBtn").addEventListener("click", uploadFile);
-});
+let currentPath = []; // Tracks the current navigation path
+let fileStructure = {}; // Stores the entire file structure in memory
+
+// request file tree from django
+function loadFiles(manage = true) {
+    fetch(loadFilesUrl, { method: "GET" })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) return;
+            fileStructure = data.structure; // Store the entire structure in memory
+            displayFiles(currentPath, manage);
+        })
+        .catch(error => console.error("Error loading files:", error));
+}
 
 function uploadFile() {
     let fileInput = document.getElementById("fileInput");
@@ -26,30 +35,8 @@ function uploadFile() {
         .catch(error => console.error("Upload error:", error));
 }
 
-// ✅ Function to Retrieve CSRF Token from Cookies
-function getCSRFToken() {
-    return document.cookie.split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-}
-
-let currentPath = []; // Tracks the current navigation path
-let fileStructure = {}; // Stores the entire file structure in memory
-
-// request file tree from django
-function loadFiles() {
-    fetch(loadFilesUrl, { method: "GET" })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) return;
-            fileStructure = data.structure; // Store the entire structure in memory
-            displayFiles(currentPath);
-        })
-        .catch(error => console.error("Error loading files:", error));
-}
-
 // display file tree in page
-function displayFiles(path = []) {
+function displayFiles(path = [], manage = true) {
     let fileList = document.getElementById("fileList");
     let pathDisplay = document.getElementById("filePath");
     fileList.innerHTML = "";
@@ -65,7 +52,7 @@ function displayFiles(path = []) {
         }
     }
 
-    // ✅ Add "Back" option
+    //  Add "Back" option
     if (path.length > 0) {
         let backItem = document.createElement("li");
         backItem.classList.add("file-item", "back-item");
@@ -73,12 +60,12 @@ function displayFiles(path = []) {
         backItem.style.cursor = "pointer";
         backItem.onclick = function () {
             currentPath.pop();
-            displayFiles(currentPath);
+            displayFiles(currentPath, manage);
         };
         fileList.appendChild(backItem);
     }
 
-    // ✅ Create Folder/File List
+    //  Create Folder/File List
     for (const key in folderContents) {
         let item = document.createElement("li");
         item.classList.add("file-item", "d-flex", "justify-content-between", "align-items-center");
@@ -88,62 +75,70 @@ function displayFiles(path = []) {
         modifyTimeSpan.classList.add("modify-time");
 
         if (typeof folderContents[key] === "object") {
-            // ✅ Folder: Clicking navigates inside
+            //  Folder: Clicking navigates inside
             nameSpan.textContent = "📁 " + key;
             nameSpan.style.cursor = "pointer";
             nameSpan.onclick = function () {
                 currentPath.push(key);
-                displayFiles(currentPath);
+                displayFiles(currentPath, manage);
             };
         } else {
-            // ✅ Create file link
+            //  Create file link
             let fileLink = document.createElement("a");
             fileLink.href = "#"; // Prevent default navigation
             fileLink.textContent = "📄" + key;
             fileLink.classList.add("custom-link");
 
-            // ✅ Bind click event to trigger download
-            fileLink.addEventListener("click", (event) => {
-                event.preventDefault();  // Prevent default link behavior
-                downloadFile(key, folderContents[key]);  // Call download function
-            });
+            //  Bind click event to trigger download
+            if (manage)
+                fileLink.addEventListener("click", (event) => {
+                    event.preventDefault();  // Prevent default link behavior
+                    downloadFile(key);  // Call download function
+                });
+            else
+                fileLink.addEventListener("click", (event) => {
+                    event.preventDefault();  // Prevent default link behavior
+                    chooseFile(key);
+                });
 
-            // ✅ Append file link
+
+            //  Append file link
             nameSpan.appendChild(fileLink);
 
-            // ✅ Display modification time
+            //  Display modification time
             modifyTimeSpan.textContent = folderContents[key]["modify_time"] || "N/A";
         }
 
         item.appendChild(nameSpan);
         item.appendChild(modifyTimeSpan);
 
-        // ✅ Action Buttons
-        let actionContainer = document.createElement("div");
-        actionContainer.classList.add("action-buttons");
+        if (manage) { //  Action Buttons
+            let actionContainer = document.createElement("div");
+            actionContainer.classList.add("action-buttons");
 
-        let renameButton = createActionButton("Rename ", () => renameFiles(key));
-        let moveButton = createActionButton("Move ", () => moveFile(key));
-        let deleteButton = createActionButton("Delete", () => deleteFileOrFolder(key, path));
+            let renameButton = createActionButton("Rename ", () => renameFiles(key));
+            let moveButton = createActionButton("Move ", () => moveFile(key));
+            let deleteButton = createActionButton("Delete", () => deleteFileOrFolder(key, path));
 
-        actionContainer.appendChild(renameButton);
-        actionContainer.appendChild(moveButton);
-        actionContainer.appendChild(deleteButton);
-        item.appendChild(actionContainer);
-
+            actionContainer.appendChild(renameButton);
+            actionContainer.appendChild(moveButton);
+            actionContainer.appendChild(deleteButton);
+            item.appendChild(actionContainer);
+        }
         fileList.appendChild(item);
     }
 
-    // ✅ Add "Create Folder" Button
-    let createFolderButton = document.createElement("button");
-    createFolderButton.textContent = "📁 Create Folder";
-    createFolderButton.classList.add("btn", "btn-sm", "btn-primary", "mt-2");
-    createFolderButton.onclick = createFolder;
-    fileList.appendChild(createFolderButton);
+    if (manage) {//  Add "Create Folder" Button
+        let createFolderButton = document.createElement("button");
+        createFolderButton.textContent = "📁 Create Folder";
+        createFolderButton.classList.add("btn", "btn-sm", "btn-primary", "mt-2");
+        createFolderButton.onclick = createFolder;
+        fileList.appendChild(createFolderButton);
+    }
 }
 
-// ✅ Update Path Display
-function updatePathDisplay(path) {
+//  Update Path Display
+function updatePathDisplay(path, manage = true) {
     let pathDisplay = document.getElementById("filePath");
     pathDisplay.innerHTML = ""; // Clear previous path
 
@@ -152,7 +147,7 @@ function updatePathDisplay(path) {
     homeLink.style.cursor = "pointer";
     homeLink.onclick = function () {
         currentPath = [];
-        displayFiles(currentPath);
+        displayFiles(currentPath, manage);
     };
     pathDisplay.appendChild(homeLink);
 
@@ -168,14 +163,14 @@ function updatePathDisplay(path) {
         folderLink.style.cursor = "pointer";
         folderLink.onclick = function () {
             currentPath = tempPath.slice(0, i + 1);
-            displayFiles(currentPath);
+            displayFiles(currentPath, manage);
         };
 
         pathDisplay.appendChild(folderLink);
     }
 }
 
-// ✅ Function to Create Folder
+//  Function to Create Folder
 function createFolder() {
     let folderName = prompt("Enter folder name:");
     if (!folderName) return;
@@ -193,7 +188,7 @@ function createFolder() {
         .catch(error => console.error("Error creating folder:", error));
 }
 
-// ✅ Function to Rename file and folder
+//  Function to Rename file and folder
 function renameFiles(oldName) {
     let newName = prompt(`Enter new name for "${oldName}":`);
     if (!newName) return;
@@ -212,7 +207,7 @@ function renameFiles(oldName) {
         .catch(error => console.error("Error renaming folder:", error));
 }
 
-// ✅ Function to Move File
+//  Function to Move File
 function moveFile(fileName) {
     let targetFolder = prompt(`Enter target folder for "${fileName}":`);
     // Allow empty folder path by keeping the file in the same directory
@@ -262,7 +257,25 @@ function downloadFile(fileName) {
     document.body.removeChild(link);
 }
 
-// ✅ Function to Create Action Button
+function chooseFile(fileName) {
+    let formData = new FormData();
+    formData.append("project_id", projectId); // Ensure project ID is correctly passed from Django
+    formData.append("file_path", [...currentPath, fileName].join("/")); // Build file path
+    fetch(chooseFileUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) alert("File selected successfully!");
+            else alert("Error: " + data.error);
+        })
+        .catch(error => console.error("Error selecting file:", error));
+}
+
+
+//  Function to Create Action Button
 function createActionButton(text, action) {
     let button = document.createElement("span");
     button.textContent = text;
