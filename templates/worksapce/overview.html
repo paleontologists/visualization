@@ -1,11 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Workbench - Project History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
 </head>
-<body>
-    overview
+
+<body class="bg-light">
+
+    <div class="container mt-4">
+        <!-- Workbench Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Overview</h2>
+            <button class="btn btn-primary">+ create new visualization</button>
+        </div>
+
+        <!-- Project History Table -->
+        <table class="table table-bordered table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>id</th>
+                    <th>Project Name</th>
+                    <th>Date Created</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ project.id }}</td>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.create|date:"F d, Y" }}</td>
+                    <td><span class="badge bg-info">Active</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info">Open</button>
+                        <button class="btn btn-sm btn-danger delete-project">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No projects found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        const toOverview = "{% url 'overview' %}";
+        const createProjectUrl = "{% url 'create-project' %}";
+        const openProjectUrl = "{% url 'open-project' %}";
+        const deleteProjectUrl = "{% url 'delete-project' %}";
+        const loadProjectUrl = "{% url 'load-project' %}";
+        const csrftoken = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'js/workspace/overview.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

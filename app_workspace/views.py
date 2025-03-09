@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from visualization.settings import TEMPLATE_PATHS
@@ -12,17 +13,28 @@ def work_home(request):
     data = {"username": username}
     return render(request, to_page, data)
 
-def overview(request):
-    to_page = TEMPLATE_PATHS["overview"]
+
+def project(request):
+    to_page = TEMPLATE_PATHS["project"]
     username = request.session.get("username", "guest")
     data = {"username": username}
     return render(request, to_page, data)
 
-def create(request):
-    to_page = TEMPLATE_PATHS["create"]
+
+def remove_session_project(request, project_id):
+    to_page = TEMPLATE_PATHS["home"]
     username = request.session.get("username", "guest")
     data = {"username": username}
-    return render(request, to_page, data)
+    if username == "guest":
+        return render(request, to_page, data)
+    request.session["work_project_list"] = [
+        project
+        for project in request.session["work_project_list"]
+        if str(project["id"]) != str(project_id)
+    ]
+    request.session.modified = True
+    return JsonResponse({"state": "success"})
+
 
 def history(request):
     to_page = TEMPLATE_PATHS["history"]

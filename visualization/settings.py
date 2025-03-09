@@ -93,7 +93,8 @@ TEMPLATE_PATHS = {
     "work-home": "worksapce/work-home.html",
     "overview": "worksapce/overview.html",
     "create": "worksapce/create.html",
-    "history": "worksapce/history.html",
+    "work-file": "worksapce/file.html",
+    "project": "worksapce/project.html",
 }
 
 

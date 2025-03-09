@@ -16,7 +16,7 @@ def login(request):
     if request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
-        group, message = User.login(username, password)
+        group, message, id = User.login(username, password)
         data.update({"message": message})
         if message == "login successful":
             # login success and return to home page for customer but go to admin page for admin
@@ -25,6 +25,8 @@ def login(request):
             # store user session so next time user don't need to login
             request.session["user_login"] = True
             request.session["username"] = username
+            request.session["id"] = id
+            request.session["work_project_list"] = []
             data.update({"username": username})
         else:
             to_page = TEMPLATE_PATHS["login-customer"]

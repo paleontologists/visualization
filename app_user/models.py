@@ -36,12 +36,13 @@ class User(models.Model):
             # password is original text password but user.password is hash password
             if check_password(password, user.password):
                 user.status = "active"
+                # updata the login time
                 user.save()
-                return user.group, "login successful"
+                return user.group, "login successful", user.id
             else:
-                return "", "Invalid credentials"
+                return "", "Invalid credentials", None
         except User.DoesNotExist:
-            return "", "User not found"
+            return "", "User not found", None
 
     @classmethod
     def register(cls, username, password):

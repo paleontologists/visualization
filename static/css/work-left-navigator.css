@@ -1,0 +1,6 @@
+/* remove button color */
+.remove-project {
+    background-color: inherit;
+    border: none;
+    color: inherit;
+}

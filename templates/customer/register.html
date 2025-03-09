@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
 </head>
 
 <body>
@@ -19,7 +21,7 @@
         <!-- Password -->
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
-        
+
         <!-- Submit Button -->
         <button type="submit">Register</button>
     </form>

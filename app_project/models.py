@@ -1,11 +1,13 @@
 from django.db import models
 from app_user.models import User
 from app_file.models import File
+import random
+import string
 
 
 class Project(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    file_id = models.ForeignKey(File, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    file = models.ForeignKey(File, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
     diagram = models.CharField(max_length=100, blank=True, null=True)
@@ -15,3 +17,21 @@ class Project(models.Model):
 
     class Meta:
         db_table = "project"
+
+    @classmethod
+    def create_project(cls, user_id):
+        project = cls(user=User.objects.get(id=user_id))
+        project.title = f"Project {generate_random_string()}"
+        project.description = f"This is {project.title}!"
+        project.save()
+        return project
+
+    @classmethod
+    def customer_search_id(cls, project_id, user_id):
+        try:
+            return Project.objects.get(id=project_id, user_id=user_id)
+        except Project.DoesNotExist:
+            return None
+
+def generate_random_string(length=5):
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
