@@ -96,15 +96,23 @@ function displayFiles(path = []) {
                 displayFiles(currentPath);
             };
         } else {
-            // ✅ File: Clicking opens the file
+            // ✅ Create file link
             let fileLink = document.createElement("a");
-            fileLink.href = folderContents[key];
+            fileLink.href = "#"; // Prevent default navigation
             fileLink.textContent = "📄" + key;
-            fileLink.target = "_blank";
             fileLink.classList.add("custom-link");
 
+            // ✅ Bind click event to trigger download
+            fileLink.addEventListener("click", (event) => {
+                event.preventDefault();  // Prevent default link behavior
+                downloadFile(key, folderContents[key]);  // Call download function
+            });
+
+            // ✅ Append file link
             nameSpan.appendChild(fileLink);
-            modifyTimeSpan.textContent = folderContents[key]["modify_time"] || "N/A"; // Show modify time if available
+
+            // ✅ Display modification time
+            modifyTimeSpan.textContent = folderContents[key]["modify_time"] || "N/A";
         }
 
         item.appendChild(nameSpan);
@@ -243,6 +251,16 @@ function deleteFileOrFolder(fileKey, filePath) {
         .catch(error => console.error("Error deleting file:", error));
 }
 
+function downloadFile(fileName) {
+    let currentFilePath = [...currentPath, fileName].join("/");
+    let downloadUrl = `${downloadFileUrl}?path=${encodeURIComponent(currentFilePath)}`;
+    let link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", fileName); // Ensures correct filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
 // ✅ Function to Create Action Button
 function createActionButton(text, action) {

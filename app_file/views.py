@@ -1,6 +1,6 @@
 import json
 import os
-from django.http import JsonResponse
+from django.http import FileResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 
 from app_file.models import *
@@ -124,3 +124,25 @@ def work_delete_file(request):
         return JsonResponse({"success": False, "error": "not exist"})
     return JsonResponse({"success": File.delete_file(full_path)})
 
+
+# customer download file
+def work_download_file(request):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    file_path = request.GET.get("path")
+    if not file_path:
+        return HttpResponseNotFound("Missing file path")
+    user_id = request.session.get("id")
+    user = User.objects.get(id=user_id)
+    file = str(user_id) + "/file/" + file_path
+    if not File.objects.filter(file=file, user=user).first():  # If None, return early
+        return render(request, to_page, data)
+    full_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", file_path)
+    if not os.path.exists(full_path):
+        return HttpResponseNotFound("File not found: " + full_path)
+    return FileResponse(open(full_path, "rb"), as_attachment=True)
+# test steal file
+# http://127.0.0.1:8000/file/work_download_file?path=\Users\54062\study\internet%20techology\teamproject\media\4/file\author.csv

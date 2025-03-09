@@ -18,5 +18,4 @@ urlpatterns = [
         view=load_project,
         name="load-project",
     ),
-
 ]
