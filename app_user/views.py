@@ -92,12 +92,12 @@ def update_profile(request):
             print(user_id)    
             # 更新用户信息
             user.first_name = request.POST.get("first_name", user.first_name)
-            # user.last_name = data.get("last_name", user.last_name)
-            # user.phone = data.get("phone", user.phone)
-            # user.gender = data.get("gender", user.gender)
-            # user.birth = data.get("birth", user.birth)
-            # user.location = data.get("location", user.location)
-            # user.introduction = data.get("introduction", user.introduction)
+            user.last_name = request.POST.get("last_name", user.last_name)
+            user.phone = request.POST.get("phone", user.phone)
+            user.gender = request.POST.get("gender", user.gender)
+            user.birth = request.POST.get("birth", user.birth)
+            user.location = request.POST.get("location", user.location)
+            user.introduction = request.POST.get("introduction", user.introduction)
 
             user.save()  # 保存更改
             return JsonResponse({"message": "Profile updated successfully!"})
