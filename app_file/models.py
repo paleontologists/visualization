@@ -156,11 +156,11 @@ class File(models.Model):
 
     # read csv or excel to json
     @classmethod
-    def read_file_to_json(file_instance):
-        file_name = file_instance.file.name.lower()  # Get file name in lowercase
+    def read_file_to_json(cls, file):
+        file_name = file.file.name.lower()  # Get file name in lowercase
         try:
             # Get absolute path of the uploaded file
-            file_path = file_instance.file.path
+            file_path = file.file.path
             # Determine file type and read accordingly
             if file_name.endswith((".xls", ".xlsx")):
                 # Use xlrd for .xls files

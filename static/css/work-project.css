@@ -6,22 +6,12 @@ body {
     margin: 0;
 }
 
-
-
-
-.resize-handle {
-    width: 6px;
-    cursor: ew-resize;
-    background-color: #888;
-    transition: background-color 0.2s;
-}
-
 .resize-handle:hover {
     background-color: #555;
 }
 
 .resize-handle {
-    width: 6px;
+    width: 10px;
     cursor: ew-resize;
     background-color: #d3d0d0;
     transition: background-color 0.2s;

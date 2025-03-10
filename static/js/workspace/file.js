@@ -270,7 +270,7 @@ function chooseFile(fileName) {
         .then(data => {
             if (data.success) {
                 // Close Bootstrap Modal
-                console.table(data)
+                // console.log(data.data.json_file);
                 let modalElement = document.getElementById("fileExplorerModal");
                 let modalInstance = bootstrap.Modal.getInstance(modalElement);
                 if (modalInstance) modalInstance.hide(); // Close modal

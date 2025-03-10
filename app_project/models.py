@@ -19,6 +19,14 @@ class Project(models.Model):
     class Meta:
         db_table = "project"
 
+    # search project id for certain user id
+    @classmethod
+    def work_search_id(cls, project_id, user_id):
+        try:
+            return Project.objects.get(id=project_id, user_id=user_id)
+        except Project.DoesNotExist:
+            return None
+
     # create project
     @classmethod
     def create_project(cls, user_id):
@@ -28,13 +36,14 @@ class Project(models.Model):
         project.save()
         return project
 
-    # search project id for certain user id
+    # load project and its file
     @classmethod
-    def work_search_id(cls, project_id, user_id):
-        try:
-            return Project.objects.get(id=project_id, user_id=user_id)
-        except Project.DoesNotExist:
-            return None
+    def load_project(cls, project_id, user_id):
+        project = cls(user=User.objects.get(id=user_id))
+        project.title = f"Project {generate_random_string()}"
+        project.description = f"This is {project.title}!"
+        project.save()
+        return project
 
     # choose a file for project
     @classmethod
@@ -43,12 +52,9 @@ class Project(models.Model):
         if not project:
             return False
         file_path = File.path_FileField(file_path, user_id)
-
-        print(file_path)
-
         file = File.get_file(file_path, user_id)
         if not file:
-            return False
+            return False, "no file"
         project.file = file
         project.save()
         json_file = File.read_file_to_json(file)
