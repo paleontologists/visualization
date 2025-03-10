@@ -1,7 +1,5 @@
 // Load files on page load
 window.onload = function () {
-    let loadingSpinner = document.getElementById("loadingSpinner");
-    loadingSpinner.remove();// Hide the spinner correctly
     loadFileDetail(projectId);
 };
 
@@ -77,7 +75,14 @@ function displayTable(fileData) {
         return;
     }
 
-    localStorage.setItem("fileData", JSON.stringify(fileData));
+    window.fileDataGlobal = fileData;
+    // const metadata = {
+    //     rowCount: fileData.length,
+    //     columns: Object.keys(fileData[0])
+    // };
+    // localStorage.setItem("fileMetadata", JSON.stringify(metadata));    
+    // sessionStorage.setItem("fileData", JSON.stringify(fileData));
+    // localStorage.setItem("fileData", JSON.stringify(fileData));
 
     // Clear previous table and axis selections
     tableHeader.innerHTML = "";
@@ -146,6 +151,9 @@ function displayTable(fileData) {
             tableBody.replaceChild(tr, placeholder);
         }
     }
+
+    let loadingSpinner = document.getElementById("loadingSpinner");
+    loadingSpinner.remove();// Hide the spinner correctly
 }
 
 // Handle X and Y axis selection and update the chart
@@ -162,7 +170,7 @@ document.getElementById("updateChartBtn").addEventListener("click", function () 
 });
 
 function updateChart(xAxis, yAxis) {
-    const fileData = JSON.parse(localStorage.getItem("fileData")) || [];
+    const fileData = window.fileDataGlobal
 
     if (!fileData.length) {
         alert("No data available for chart.");
@@ -172,6 +180,15 @@ function updateChart(xAxis, yAxis) {
     // Extract data for chart
     const xValues = fileData.map(row => row[xAxis]);
     const yValues = fileData.map(row => parseFloat(row[yAxis]) || 0); // Ensure numeric y-values
+
+    // Combine X and Y values into pairs and sort by X values
+    const sortedData = xValues.map((x, i) => ({ x, y: yValues[i] }))
+        .sort((a, b) => a.x.localeCompare ? a.x.localeCompare(b.x) : a.x - b.x); // Handles both strings & numbers
+
+    // Extract sorted values
+    const xValuesSorted = sortedData.map(d => d.x);
+    const yValuesSorted = sortedData.map(d => d.y);
+
 
     // Initialize ECharts instance
     const chartDom = document.getElementById("chart");
@@ -185,15 +202,15 @@ function updateChart(xAxis, yAxis) {
         tooltip: {},
         xAxis: {
             type: "category",
-            data: xValues
+            data: xValuesSorted
         },
         yAxis: {
             type: "value"
         },
         series: [{
             name: yAxis,
-            type: "line", // Change to "bar" or other chart type if needed
-            data: yValues
+            type: "bar", // Change to "bar" or other chart type if needed
+            data: yValuesSorted
         }]
     };
 
