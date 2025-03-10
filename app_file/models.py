@@ -25,10 +25,19 @@ class File(models.Model):
 
     # get the file by file FileField
     @classmethod
-    def get_file(cls, full_path, user_id):
+    def get_file_by_path(cls, full_path, user_id):
         try:
             user = User.objects.get(id=user_id)
             return File.objects.get(file=full_path, user=user)
+        except Exception as e:
+            return None
+
+    # get file by id
+    @classmethod
+    def get_file_by_id(cls, file_id, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            return File.objects.get(id=file_id, user=user)
         except Exception as e:
             return None
 
@@ -91,7 +100,7 @@ class File(models.Model):
         if default_storage.exists(new_path):
             return False, "same name file"
         #  If it's a file, rename directly
-        file = File.get_file(old_path, user_id)
+        file = File.get_file_by_path(old_path, user_id)
         if file is not None:
             with default_storage.open(old_path, "rb") as old_file:
                 default_storage.save(new_path, old_file)  # Save the file
@@ -147,7 +156,7 @@ class File(models.Model):
             return True, "success"
         except Exception as e:
             # If listdir() fails, it means path is a file, so delete it
-            file = File.get_file(path, user_id)
+            file = File.get_file_by_path(path, user_id)
             if file:
                 default_storage.delete(file.file.name)  #  Delete from storage
                 file.delete()  #  Remove database record
@@ -159,18 +168,16 @@ class File(models.Model):
     def read_file_to_json(cls, file):
         file_name = file.file.name.lower()  # Get file name in lowercase
         try:
-            # Get absolute path of the uploaded file
-            file_path = file.file.path
-            # Determine file type and read accordingly
-            if file_name.endswith((".xls", ".xlsx")):
-                # Use xlrd for .xls files
-                df = pd.read_excel(file_path, engine="openpyxl")
-            elif file_name.endswith(".csv"):
-                df = pd.read_csv(file_path)
-            else:
-                return False
-            # Convert DataFrame to JSON
-            json_data = df.to_json(orient="records")  # Each row becomes a JSON object
-            return json_data
+            # Open the file using Django's storage system (supports cloud storage too)
+            with default_storage.open(file.file.name, "rb") as f:
+                # Read Excel files
+                if file_name.endswith((".xls", ".xlsx")):
+                    df = pd.read_excel(f, engine="openpyxl")
+                # Read CSV files
+                elif file_name.endswith(".csv"):
+                    df = pd.read_csv(f)
+                else:
+                    return False  # Unsupported format
+            return df
         except Exception as e:
             return False

@@ -23,7 +23,8 @@ class Project(models.Model):
     @classmethod
     def work_search_id(cls, project_id, user_id):
         try:
-            return Project.objects.get(id=project_id, user_id=user_id)
+            user = User.objects.get(id=user_id)
+            return Project.objects.get(id=project_id, user=user)
         except Project.DoesNotExist:
             return None
 
@@ -39,11 +40,13 @@ class Project(models.Model):
     # load project and its file
     @classmethod
     def load_project(cls, project_id, user_id):
-        project = cls(user=User.objects.get(id=user_id))
-        project.title = f"Project {generate_random_string()}"
-        project.description = f"This is {project.title}!"
-        project.save()
-        return project
+        project = Project.work_search_id(project_id, user_id)
+        try:
+            file = File.get_file_by_id(project.file.id, user_id)
+            json_file = File.read_file_to_json(file)
+        except:
+            json_file = None
+        return project, json_file
 
     # choose a file for project
     @classmethod
@@ -52,22 +55,12 @@ class Project(models.Model):
         if not project:
             return False
         file_path = File.path_FileField(file_path, user_id)
-        file = File.get_file(file_path, user_id)
+        file = File.get_file_by_path(file_path, user_id)
         if not file:
             return False, "no file"
         project.file = file
         project.save()
-        json_file = File.read_file_to_json(file)
-        if not json_file:
-            return False
-        return {
-            "title": project.title,
-            "description": project.description,
-            "diagram": project.diagram,
-            "echarts_config": project.echarts_config,
-            "update": project.update,
-            "json_file": json_file,
-        }
+        return True, "success"
 
 
 def generate_random_string(length=5):

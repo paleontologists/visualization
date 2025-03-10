@@ -12,11 +12,11 @@ urlpatterns = [
         view=open_project,
         name="open-project",
     ),
-    path("load_project", view=load_project, name="load-project"),
+    path("load_project", view=load_project, name="work-load-project"),
     path(
         "load_project/<int:project_id>/",
         view=load_project,
-        name="load-project",
+        name="work-load-project",
     ),
     path("choose_file", view=choose_file, name="choose-file"),
 ]

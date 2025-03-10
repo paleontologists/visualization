@@ -98,10 +98,10 @@ def load_project(request, project_id):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project = Project.work_search_id(project_id, user_id)
-    if project == None:
+    project, json_file = Project.load_project(project_id, user_id)
+    if not project:
         return render(request, to_page, data)
-    data = {"project": project}
+    data = {"project": project, "file": json_file}
     to_page = TEMPLATE_PATHS["project"]
     return render(request, to_page, data)
 
@@ -116,8 +116,5 @@ def choose_file(request):
     project_id = request.POST.get("project_id")
     user_id = request.session.get("id")
     file_path = request.POST.get("file_path")
-    data = Project.work_choose_file(project_id, user_id, file_path)
-    # Ensure the returned object is a valid Project instance
-    if not data:
-        return JsonResponse({"success": False})
-    return JsonResponse({"success": True, "data": data})
+    state, text = Project.work_choose_file(project_id, user_id, file_path)
+    return JsonResponse({"success": state, "text": text})
