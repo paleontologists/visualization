@@ -101,8 +101,6 @@ def update_profile(request):
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-<<<<<<< HEAD
-=======
 
 def upload_photo(request):
     if request.method == "POST":
@@ -130,4 +128,3 @@ def upload_photo(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
->>>>>>> 67a3dc9d421a289fda60ac890387e9b50fdebdb1
