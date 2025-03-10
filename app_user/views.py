@@ -103,7 +103,7 @@ def update_profile(request):
 def upload_photo(request):
     """使用 session 让用户登录后才能上传头像"""
     if request.method == "POST" and request.FILES.get("photo"):
-        user_id = request.session.get("id")  # ✅ 从 session 获取用户 ID
+        user_id = request.session.get("id")  # 从 session 获取用户 ID
         if not user_id:
             return JsonResponse({"error": "User not logged in"}, status=403)
 

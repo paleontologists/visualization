@@ -10,4 +10,5 @@ urlpatterns = [
     path("user_center", view=user_center, name="user-center"),
     path('user_profile', user_profile, name='user_profile'),
     path('user_update', update_profile, name='update_profile'),
+    path('user_upload_photo', upload_photo, name='upload_photo'),
 ]
