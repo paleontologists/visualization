@@ -54,7 +54,7 @@ def open_project(request, project_id):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project = Project.customer_search_id(project_id, user_id)
+    project = Project.work_search_id(project_id, user_id)
     if project == None:
         return render(request, to_page, data)
     request.session.modified = True
@@ -77,8 +77,8 @@ def delete_project(request):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project_id = json.loads(request.body).get("project_id")
-    project = Project.customer_search_id(project_id, user_id)
+    project_id = json.loads(request.body.decode("utf-8")).get("project_id")
+    project = Project.work_search_id(project_id, user_id)
     if project == None:
         return render(request, to_page, data)
     project.delete()
@@ -98,7 +98,7 @@ def load_project(request, project_id):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project = Project.customer_search_id(project_id, user_id)
+    project = Project.work_search_id(project_id, user_id)
     if project == None:
         return render(request, to_page, data)
     data = {"project": project}
@@ -115,18 +115,9 @@ def choose_file(request):
         return render(request, to_page, data)
     project_id = request.POST.get("project_id")
     user_id = request.session.get("id")
-    project = Project.customer_search_id(project_id, user_id)
-    if not project:
-        return JsonResponse({"success": False, "error": "Missing project"})
     file_path = request.POST.get("file_path")
-    full_path = os.path.join(f"{user_id}/file", file_path).replace("\\", "/").strip()
-    file = File.get_file(full_path, user_id)
-    if not file:
+    data = Project.work_choose_file(project_id, user_id, file_path)
+    # Ensure the returned object is a valid Project instance
+    if not data:
         return JsonResponse({"success": False})
-    try:
-        project.file = file
-        print(file.file)
-        # project.save()
-        return JsonResponse({"success": True, "message": "File successfully chosen"})
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"success": True, "data": data})

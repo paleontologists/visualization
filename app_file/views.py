@@ -48,61 +48,27 @@ def work_create_folder(request):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    data = json.loads(request.body)
+    data = json.loads(request.body.decode("utf-8"))
     relative_path = data.get("path", "").strip()  # Get the requested folder path
     if not relative_path:
         return JsonResponse({"success": False, "error": "No folder path"}, status=400)
     return JsonResponse({"success": File.create_folder(relative_path, user_id)})
 
-
-# rename file or folder
-def work_rename_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
-    user_id = request.session.get("id")
-    data = json.loads(request.body)
-    old_relative_path = data.get("old_path", "").strip()
-    new_relative_path = data.get("new_path", "").strip()
-    if not old_relative_path or not new_relative_path:
-        return JsonResponse({"success": False})
-    # Construct full paths
-    old_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", old_relative_path)
-    new_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", new_relative_path)
-    # Check if the old file/folder exists
-    if not os.path.exists(old_path):
-        return JsonResponse({"success": False, "error": "not exist"})
-    # Prevent overwriting an existing file/folder
-    if os.path.exists(new_path):
-        return JsonResponse({"success": False, "error": "exists"})
-    return JsonResponse({"success": File.rename_file(old_path, new_path)})
-
-
 # customer move a file or folder to another position
-def work_move_file(request):
+def work_modify_file_path(request):
     to_page = TEMPLATE_PATHS["home"]
     username = request.session.get("username", "guest")
     data = {"username": username}
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    data = json.loads(request.body)
+    data = json.loads(request.body.decode("utf-8"))
     old_relative_path = data.get("old_path", "").strip()
     new_relative_path = data.get("new_path", "").strip()
     if not old_relative_path or not new_relative_path:
         return JsonResponse({"success": False})
-    # Construct full paths
-    old_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", old_relative_path)
-    new_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", new_relative_path)
-    # Check if the old file/folder exists
-    if not os.path.exists(old_path):
-        return JsonResponse({"success": False, "error": "not exist"})
-    # Prevent overwriting an existing file/folder
-    if os.path.exists(new_path):
-        return JsonResponse({"success": False, "error": "exists"})
-    return JsonResponse({"success": File.rename_file(old_path, new_path)})
+    state, text = File.modify_file_path(user_id, old_relative_path, new_relative_path)
+    return JsonResponse({"success": state, "text": text})
 
 
 # customer delete file or folder
@@ -113,16 +79,12 @@ def work_delete_file(request):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    data = json.loads(request.body)
+    data = json.loads(request.body.decode("utf-8"))
     relative_path = data.get("path", "").strip()
     if not relative_path:
         return JsonResponse({"success": False})
-    # Construct full paths
-    full_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", relative_path)
-    # Check if the old file/folder exists
-    if not os.path.exists(full_path):
-        return JsonResponse({"success": False, "error": "not exist"})
-    return JsonResponse({"success": File.delete_file(full_path)})
+    state, text = File.delete_file(relative_path, user_id)
+    return JsonResponse({"success": state, "text": text})
 
 
 # customer download file
@@ -144,5 +106,7 @@ def work_download_file(request):
     if not os.path.exists(full_path):
         return HttpResponseNotFound("File not found: " + full_path)
     return FileResponse(open(full_path, "rb"), as_attachment=True)
+
+
 # test steal file
 # http://127.0.0.1:8000/file/work_download_file?path=\Users\54062\study\internet%20techology\teamproject\media\4/file\author.csv

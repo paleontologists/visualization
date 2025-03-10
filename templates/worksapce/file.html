@@ -26,7 +26,7 @@
         <!-- File Explorer Section -->
         <div class="card p-3">
             <h5>Your Files</h5>
-            <div id="filePath" class="mb-2"></div> <!-- ✅ Path Display Here -->
+            <div id="filePath" class="mb-2"></div> <!--  Path Display Here -->
             <ul class="list-group" id="fileList">
                 <!-- Files will be dynamically listed here -->
             </ul>
@@ -39,8 +39,7 @@
         const loadFilesUrl = "{% url 'work-load-file' %}";
         const createFolderUrl = "{% url 'work-create-folder' %}";
         const downloadFileUrl = "{% url 'work-download-file' %}";
-        const renameFilesUrl = "{% url 'work-rename-file' %}";
-        const moveFileUrl = "{% url 'work-move-file' %}";
+        const modifyFilePathUrl = "{% url 'work-modify-file-path' %}";
         const deleteFileUrl = "{% url 'work-delete-file' %}";
         const csrftoken = "{{ csrf_token }}";
         document.addEventListener("DOMContentLoaded", function () {

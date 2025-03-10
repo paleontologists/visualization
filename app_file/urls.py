@@ -9,7 +9,6 @@ urlpatterns = [
     path("work_load_file", view=work_load_file, name="work-load-file"),
     path("work_create_folder", view=work_create_folder, name="work-create-folder"),
     path("work_download_file", view=work_download_file, name="work-download-file"),
-    path("work_rename_file", view=work_rename_file, name="work-rename-file"),
-    path("work_move_file", view=work_move_file, name="work-move-file"),
+    path("work_modify_file_path", view=work_modify_file_path, name="work-modify-file-path"),
     path("work_delete_file", view=work_delete_file, name="work-delete-file"),
 ]

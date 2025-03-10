@@ -1,10 +1,10 @@
 a {
-    text-decoration: none; /* ✅ Removes underline */
-    color: black; /* ✅ Sets text color to black */
+    text-decoration: none; /*  Removes underline */
+    color: black; /*  Sets text color to black */
 }
 
 a:hover {
-    color: gray; /* ✅ Optional: Change color on hover */
+    color: gray; /*  Optional: Change color on hover */
 }
 
 /* Remove line separators */

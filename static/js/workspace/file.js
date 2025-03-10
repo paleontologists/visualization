@@ -194,7 +194,7 @@ function renameFiles(oldName) {
     if (!newName) return;
     let oldPath = [...currentPath, oldName].join("/");
     let newPath = [...currentPath, newName].join("/");
-    fetch(renameFilesUrl, {
+    fetch(modifyFilePathUrl, {
         method: "POST",
         headers: { "X-CSRFToken": csrftoken },
         body: JSON.stringify({ old_path: oldPath, new_path: newPath })
@@ -202,7 +202,7 @@ function renameFiles(oldName) {
         .then(response => response.json())
         .then(data => {
             if (data.success) loadFiles();
-            else alert("Failed to rename folder: " + data.error);
+            else alert("Failed to rename folder: " + data.text);
         })
         .catch(error => console.error("Error renaming folder:", error));
 }
@@ -215,7 +215,7 @@ function moveFile(fileName) {
     let currentFilePath = [...currentPath, fileName].join("/");
     // If blank, keep the same path
     let targetFilePath = targetFolder ? `${targetFolder}/${fileName}` : fileName;
-    fetch(moveFileUrl, {
+    fetch(modifyFilePathUrl, {
         method: "POST",
         headers: { "X-CSRFToken": csrftoken },
         body: JSON.stringify({ old_path: currentFilePath, new_path: targetFilePath })
@@ -223,7 +223,7 @@ function moveFile(fileName) {
         .then(response => response.json())
         .then(data => {
             if (data.success) loadFiles();
-            else alert("Failed to move file: " + data.error);
+            else alert("Failed to move file: " + data.text);
         })
         .catch(error => console.error("Error moving file:", error));
 }
@@ -268,8 +268,14 @@ function chooseFile(fileName) {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) alert("File selected successfully!");
-            else alert("Error: " + data.error);
+            if (data.success) {
+                // Close Bootstrap Modal
+                console.table(data)
+                let modalElement = document.getElementById("fileExplorerModal");
+                let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) modalInstance.hide(); // Close modal
+            }
+            else alert("Error");
         })
         .catch(error => console.error("Error selecting file:", error));
 }

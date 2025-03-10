@@ -1,7 +1,12 @@
+import json
 import os
 import shutil
+import time
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.utils.timezone import now
 from django.db import models
+import pandas as pd
 from app_user.models import User
 from visualization import settings
 
@@ -29,6 +34,11 @@ class File(models.Model):
             return File.objects.get(file=full_path, user=user)
         except Exception as e:
             return None
+
+    # transform relative path to path for FileField
+    @classmethod
+    def path_FileField(cls, file_path, user_id):
+        return os.path.join(f"{user_id}/file", file_path).replace("\\", "/").strip()
 
     @classmethod
     def upload_file(cls, user_id, uploaded_file, title=None, description=""):
@@ -72,36 +82,98 @@ class File(models.Model):
         except Exception as e:
             return False
 
-    # rename file or folder
+    # rename file or folder in a tree process
     @classmethod
-    def rename_file(cls, old_path, new_path):
-        try:
-            os.rename(old_path, new_path)  # Rename file/folder
-            return True
-        except Exception as e:
-            return False
-
-    # move the file or folder
-    @classmethod
-    def move_file(cls, old_path, new_path):
-        try:
-            # Ensure the target directory exists
-            os.makedirs(os.path.dirname(new_path), exist_ok=True)
-            # Move the file or folder
-            shutil.move(old_path, new_path)
-            return True
-        except Exception as e:
-            return False
+    def modify_file_path(cls, user_id, old_relative_path, new_relative_path):
+        # Check if the old file/folder exists
+        old_path = File.path_FileField(old_relative_path, user_id)
+        if not default_storage.exists(old_path):
+            return False, "file not exist"
+        # Prevent overwriting an existing file/folder
+        new_path = File.path_FileField(new_relative_path, user_id)
+        if default_storage.exists(new_path):
+            return False, "same name file"
+        #  If it's a file, rename directly
+        file = File.get_file(old_path, user_id)
+        if file is not None:
+            with default_storage.open(old_path, "rb") as old_file:
+                default_storage.save(new_path, old_file)  # Save the file
+            default_storage.delete(file.file.name)  # Delete old file
+            file.file.name = new_path  # Update FileField path
+            file.save()
+            return True, "file"
+        #  Handle folder renaming (Recursively modify files & subfolders)
+        if default_storage.exists(old_path):
+            subfolders, files = default_storage.listdir(old_path)
+            #  Create new folder using a placeholder file
+            placeholder_path = os.path.join(new_path, ".keep").replace("\\", "/")
+            # Create folder with .keep file an empty .keep file
+            default_storage.save(placeholder_path, ContentFile(""))
+            #  Remove the `.keep` file after all files are moved
+            default_storage.delete(placeholder_path)
+            #  First move all files in the current directory
+            for file_name in files:
+                cls.modify_file_path(
+                    user_id,
+                    os.path.join(old_relative_path, file_name),
+                    os.path.join(new_relative_path, file_name),
+                )
+            #  Then recursively move all subfolders
+            for folder_name in subfolders:
+                cls.modify_file_path(
+                    user_id,
+                    os.path.join(old_relative_path, folder_name),
+                    os.path.join(new_relative_path, folder_name),
+                )
+            #  Delete the old folder after moving everything
+            default_storage.delete(old_path)
+            return True, "folder"
+        return False, "error"
 
     # delete the file or folder
     @classmethod
-    def delete_file(cls, full_path):
+    def delete_file(cls, relative_path, user_id):
+        path = File.path_FileField(relative_path, user_id)
+        #  Check if the file/folder exists
+        if not default_storage.exists(path):
+            return False, "file not exist"
         try:
-            (
-                shutil.rmtree(full_path)
-                if os.path.isdir(full_path)
-                else os.remove(full_path)
-            )
-            return True
+            #  Try listing contents to check if it's a folder
+            subfolders, files = default_storage.listdir(path)
+            if files or subfolders:  #  If it has contents, delete them recursively
+                for file_name in files:
+                    cls.delete_file(os.path.join(relative_path, file_name), user_id)
+                for folder_name in subfolders:
+                    cls.delete_file(os.path.join(relative_path, folder_name), user_id)
+            #  Delete the folder itself
+            default_storage.delete(path)
+            return True, "success"
+        except Exception as e:
+            # If listdir() fails, it means path is a file, so delete it
+            file = File.get_file(path, user_id)
+            if file:
+                default_storage.delete(file.file.name)  #  Delete from storage
+                file.delete()  #  Remove database record
+                return True, "file deleted"
+        return False, "error"
+
+    # read csv or excel to json
+    @classmethod
+    def read_file_to_json(file_instance):
+        file_name = file_instance.file.name.lower()  # Get file name in lowercase
+        try:
+            # Get absolute path of the uploaded file
+            file_path = file_instance.file.path
+            # Determine file type and read accordingly
+            if file_name.endswith((".xls", ".xlsx")):
+                # Use xlrd for .xls files
+                df = pd.read_excel(file_path, engine="openpyxl")
+            elif file_name.endswith(".csv"):
+                df = pd.read_csv(file_path)
+            else:
+                return False
+            # Convert DataFrame to JSON
+            json_data = df.to_json(orient="records")  # Each row becomes a JSON object
+            return json_data
         except Exception as e:
             return False

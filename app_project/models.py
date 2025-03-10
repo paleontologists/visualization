@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from app_user.models import User
 from app_file.models import File
@@ -18,6 +19,7 @@ class Project(models.Model):
     class Meta:
         db_table = "project"
 
+    # create project
     @classmethod
     def create_project(cls, user_id):
         project = cls(user=User.objects.get(id=user_id))
@@ -26,12 +28,41 @@ class Project(models.Model):
         project.save()
         return project
 
+    # search project id for certain user id
     @classmethod
-    def customer_search_id(cls, project_id, user_id):
+    def work_search_id(cls, project_id, user_id):
         try:
             return Project.objects.get(id=project_id, user_id=user_id)
         except Project.DoesNotExist:
             return None
+
+    # choose a file for project
+    @classmethod
+    def work_choose_file(cls, project_id, user_id, file_path):
+        project = Project.work_search_id(project_id, user_id)
+        if not project:
+            return False
+        file_path = File.path_FileField(file_path, user_id)
+
+        print(file_path)
+
+        file = File.get_file(file_path, user_id)
+        if not file:
+            return False
+        project.file = file
+        project.save()
+        json_file = File.read_file_to_json(file)
+        if not json_file:
+            return False
+        return {
+            "title": project.title,
+            "description": project.description,
+            "diagram": project.diagram,
+            "echarts_config": project.echarts_config,
+            "update": project.update,
+            "json_file": json_file,
+        }
+
 
 def generate_random_string(length=5):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))

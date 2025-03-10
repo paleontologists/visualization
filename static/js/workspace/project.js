@@ -1,7 +1,7 @@
 // Load files on page load
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("fileExplorerModal").addEventListener("shown.bs.modal", function () {
-        loadFiles(false);  // ✅ Call function when modal opens to show file tree
+        loadFiles(false);  //  Call function when modal opens to show file tree
     });
     // Initialize ECharts
     var chart = echarts.init(document.getElementById('chart'));
@@ -18,6 +18,20 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener('resize', function () {
         chart.resize();
     });
+
+    function checkTableEmpty() {
+        let tableBody = document.querySelector("#dataTable tbody");
+        let noFileMessage = document.getElementById("noFileMessage");
+        if (tableBody.children.length === 0) {
+            noFileMessage.style.display = "block";  //  Show message when table is empty
+        } else {
+            noFileMessage.style.display = "none";   // ❌ Hide message when table has files
+        }
+    }
+    // Call this function whenever the table updates
+    checkTableEmpty();
+
+
 
     // Generate a 100x100 table dynamically
     function generateTable(rows, cols) {
