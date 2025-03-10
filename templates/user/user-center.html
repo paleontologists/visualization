@@ -60,15 +60,6 @@
             <button type="submit">Logout</button>
         </div>
     </form>
-
-    <form id="profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label>First Name: <input type="text" id="first_name" name="first_name"></label><br>
-        <label>Profile Photo: <input type="file" id="photo" name="photo"></label><br>
-        <img id="preview" src="{{ user.photo.url }}" alt="Profile Photo" width="100"><br>
-        <button type="button" id="upload-photo-btn">Upload Photo</button>
-        <button type="submit">Update Profile</button>
-    </form>
     
 
 
