@@ -257,6 +257,20 @@ function downloadFile(fileName) {
     document.body.removeChild(link);
 }
 
+function loadFileDetail(project_id) {
+    fetch(`${loadFileDetailUrl}?project_id=${encodeURIComponent(project_id)}`, {
+        method: "GET",
+        headers: { "X-CSRFToken": csrftoken }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) displayTable(data.file);
+            else alert("Error");
+        })
+        .catch(error => console.error("Error selecting file:", error));
+}
+
+
 function chooseFile(fileName) {
     let formData = new FormData();
     formData.append("project_id", projectId); // Ensure project ID is correctly passed from Django

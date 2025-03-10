@@ -98,10 +98,10 @@ def load_project(request, project_id):
     if username == "guest":
         return render(request, to_page, data)
     user_id = request.session.get("id")
-    project, json_file = Project.load_project(project_id, user_id)
+    project = Project.load_project(project_id, user_id)
     if not project:
         return render(request, to_page, data)
-    data = {"project": project, "file": json_file}
+    data = {"project": project}
     to_page = TEMPLATE_PATHS["project"]
     return render(request, to_page, data)
 

@@ -1,4 +1,5 @@
 import os
+from django.apps import apps
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.utils.timezone import now
@@ -54,6 +55,18 @@ class File(models.Model):
             title=title if title else uploaded_file.name,
             description=description,
         )
+    
+    # load single file to json
+    @classmethod
+    def load_file(cls, project_id, user_id):
+        try:
+            from app_project.models import Project
+            project = Project.work_search_id(project_id, user_id)
+            file = File.get_file_by_id(project.file.id, user_id)
+            json_file = File.read_file_to_json(file)
+        except:
+            json_file = None
+        return json_file
 
     # return file tree structure
     @classmethod
@@ -178,6 +191,6 @@ class File(models.Model):
                     df = pd.read_csv(f)
                 else:
                     return False  # Unsupported format
-            return df
+            return df.to_json(orient="records")
         except Exception as e:
             return False

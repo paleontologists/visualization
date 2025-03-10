@@ -42,28 +42,15 @@
                 </div>
                 <table id="dataTable" class="table table-bordered text-center w-100 m-0 p-0">
                     <thead class="table-dark">
-                        <tr id="tableHeader">
-                            {% for column in file.columns %}
-                            <th>{{ column }}</th>
-                            {% endfor %}
-                        </tr>
+                        <tr id="tableHeader"></tr>
                     </thead>
-                    <!-- <tbody id="tableBody"></tbody> Table body will be filled dynamically via JS -->
-                    <tbody>
-                        {% for index, row in file.iterrows %}
-                        <tr>
-                            {% for value in row %}
-                            <td>{{ value }}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                    <tbody id="tableBody"></tbody> <!-- JS will populate this -->
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Choose File Button -->
+    <!-- Bottom Controller -->
     <div class="d-flex flex-column bg-secondary text-white p-2">
         <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">Row 1</div>
         <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">Row 2</div>
@@ -72,8 +59,18 @@
                 Choose File
             </button>
             <button class="btn btn-light" id="bottomControllerBtn">Bottom Controller</button>
+
+            <!-- X and Y Axis Selection -->
+            <select id="xAxisSelect" class="form-select mx-2">
+                <option value="">Select X-Axis</option>
+            </select>
+            <select id="yAxisSelect" class="form-select mx-2">
+                <option value="">Select Y-Axis</option>
+            </select>
+            <button class="btn btn-success" id="updateChartBtn">Update Chart</button>
         </div>
     </div>
+
 
     <!-- Custom Alert (Bootstrap Modal) -->
     <div class="modal fade" id="fileExplorerModal" tabindex="-1" aria-labelledby="fileExplorerLabel" aria-hidden="true">
@@ -99,18 +96,12 @@
         </div>
     </div>
     <input type="hidden" id="projectId" value="{{ project.id }}">
-    <!-- <input type="hidden" id="file-data" data-json='[ 
-        {% for index, row in file.iterrows %} 
-        { {% for column, value in row.items %} 
-            "{{ column }}": "{{ value }}" {% if not forloop.last %}, {% endif %} 
-        {% endfor %} }
-        {% if not forloop.last %}, {% endif %} {% endfor %} ]'> -->
     <script>
         const projectId = document.getElementById("projectId").value;
-        let allData = JSON.parse(document.getElementById("file-data").getAttribute("data-json"));
         const chooseFileUrl = "{% url 'choose-file' %}";
         const uploadUrl = "{% url 'work-upload-file' %}";
         const loadFilesUrl = "{% url 'work-load-file' %}";
+        const loadFileDetailUrl = "{% url 'work-detail-file' %}";
         const projectUrl = "{% url 'work-load-project' project.id %}";
         const createFolderUrl = "{% url 'work-create-folder' %}";
         const downloadFileUrl = "{% url 'work-download-file' %}";

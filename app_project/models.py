@@ -41,12 +41,7 @@ class Project(models.Model):
     @classmethod
     def load_project(cls, project_id, user_id):
         project = Project.work_search_id(project_id, user_id)
-        try:
-            file = File.get_file_by_id(project.file.id, user_id)
-            json_file = File.read_file_to_json(file)
-        except:
-            json_file = None
-        return project, json_file
+        return project
 
     # choose a file for project
     @classmethod

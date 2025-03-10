@@ -25,7 +25,7 @@ def work_upload_file(request):
     return JsonResponse({"success": True})
 
 
-# customer upload their files
+# customer load their files
 def work_load_file(request):
     to_page = TEMPLATE_PATHS["home"]
     username = request.session.get("username", "guest")
@@ -38,6 +38,19 @@ def work_load_file(request):
         return JsonResponse({"success": True, "structure": {}})  # No files yet
     folder_structure = File.load_folder_tree(user_folder, user_id)
     return JsonResponse({"success": True, "structure": folder_structure})
+
+
+# customer load their file detail for chart
+def work_detail_file(request):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    user_id = request.session.get("id")
+    project_id = request.GET.get("project_id")
+    json_file = File.load_file(project_id, user_id)
+    return JsonResponse({"success": True, "file": json_file})
 
 
 # customer create a folder
@@ -53,6 +66,7 @@ def work_create_folder(request):
     if not relative_path:
         return JsonResponse({"success": False, "error": "No folder path"}, status=400)
     return JsonResponse({"success": File.create_folder(relative_path, user_id)})
+
 
 # customer move a file or folder to another position
 def work_modify_file_path(request):
