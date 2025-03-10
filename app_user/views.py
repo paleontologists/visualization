@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from app_user.models import User
 from visualization.settings import TEMPLATE_PATHS
-import json
 from django.http import JsonResponse
-
-
+from django.core.files.base import ContentFile
+from django.conf import settings
+import os
 
 # view for user to login
 def login(request):
@@ -63,8 +63,8 @@ def user_center(request):
     return render(request, to_page, {"message": message})
 
 def user_profile(request):
-    """获取用户信息"""
-    user = request.use
+    user_id = request.session.get("id")
+    user = User.objects.get(id=user_id)
     user_info = {
         "first_name": user.first_name,
         "last_name": user.last_name,
@@ -81,18 +81,17 @@ def user_profile(request):
 def update_profile(request):
     if request.method == "POST":
         try:
-            # user = request.user  # 获取当前用户
             user_id= request.session.get("id")
-            user = User.objects.get(username=request.session.get("username")) 
-            print(user_id)    
+            print(user_id)
+            user = User.objects.get(id=user_id) 
             # 更新用户信息
             user.first_name = request.POST.get("first_name", user.first_name)
-            # user.last_name = data.get("last_name", user.last_name)
-            # user.phone = data.get("phone", user.phone)
-            # user.gender = data.get("gender", user.gender)
-            # user.birth = data.get("birth", user.birth)
-            # user.location = data.get("location", user.location)
-            # user.introduction = data.get("introduction", user.introduction)
+            user.last_name = request.POST.get("last_name", user.last_name)
+            user.phone = request.POST.get("phone", user.phone)
+            user.gender = request.POST.get("gender", user.gender)
+            user.birth = request.POST.get("birth", user.birth)
+            user.location = request.POST.get("location", user.location)
+            user.introduction = request.POST.get("introduction", user.introduction)
 
             user.save()  # 保存更改
             return JsonResponse({"message": "Profile updated successfully!"})
@@ -100,3 +99,31 @@ def update_profile(request):
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def upload_photo(request):
+    """使用 session 让用户登录后才能上传头像"""
+    if request.method == "POST" and request.FILES.get("photo"):
+        user_id = request.session.get("id")  # ✅ 从 session 获取用户 ID
+        if not user_id:
+            return JsonResponse({"error": "User not logged in"}, status=403)
+
+        try:
+            user = User.objects.get(id=user_id)
+            photo = request.FILES["photo"]
+
+            # 删除旧头像（可选）
+            if user.photo:
+                old_photo_path = os.path.join(settings.MEDIA_ROOT, str(user.photo))
+                if os.path.exists(old_photo_path):
+                    os.remove(old_photo_path)
+
+            # 保存新头像
+            user.photo.save(photo.name, ContentFile(photo.read()))
+            user.save()
+
+            return JsonResponse({"message": "Photo uploaded successfully!", "photo_url": user.photo.url})
+        
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+    return JsonResponse({"error": "No file uploaded"}, status=400)
