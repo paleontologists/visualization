@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-{% load static %}
+<!DOCTYPE html>S
 <html lang="en">
 {% load static %}
 
@@ -46,13 +45,21 @@
             <label for="introduction">Introduction</label>
             <textarea id="introduction" name="introduction">{{ user.introduction }}</textarea>
         </div>
-        <div>
+        <!-- <div>
             <label for="photo">Profile Photo</label>
             <input type="file" id="photo" name="photo">
-        </div>
+        </div> -->
         <div>
             <button type="submit">Update Profile</button>
         </div>
+    </form>
+    <!-- 头像上传表单 -->
+    <form id="photo-upload-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Profile Photo:</label>
+        <input type="file" id="upload-photo" name="upload-photo">
+        <img id="profile_photo" src="" alt="Profile Photo" width="100"><br>
+        <button type="button" id="upload-photo-btn">Upload Photo</button>
     </form>
     <form method="POST" action="{% url 'logout' %}">
         {% csrf_token %}
@@ -60,10 +67,13 @@
             <button type="submit">Logout</button>
         </div>
     </form>
-    
 
+    <script>
+        const userProfileUrl = "{% url 'user_profile' %}";  // 获取用户信息的 API
+        const uploadPhotoUrl = "{% url 'upload_photo' %}";  // 头像上传的 API
+        const csrfToken = "{{ csrf_token }}";  // Django CSRF 令牌
+    </script>
 
-    
     <script src="{% static 'js/user/user-profile.js' %}"></script>
 
 </body>

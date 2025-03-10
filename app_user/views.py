@@ -74,6 +74,7 @@ def user_profile(request):
         "birth": user.birth.strftime("%Y-%m-%d") if user.birth else "",
         "location": user.location,
         "introduction": user.introduction,
+        "profile_photo": user.photo.url if user.photo else None,
     }
     return JsonResponse(user_info)
 
@@ -100,3 +101,33 @@ def update_profile(request):
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+<<<<<<< HEAD
+=======
+
+def upload_photo(request):
+    if request.method == "POST":
+        user_id = request.session.get("id")
+
+        # 确保用户已登录
+        if not user_id:
+            return JsonResponse({"error": "User not logged in"}, status=403)
+
+        try:
+            user = User.objects.get(id=user_id)
+
+            if "photo" in request.FILES:
+                user.photo = request.FILES["photo"]
+                user.save()
+
+                # 确保返回的 `photo_url` 可被前端使用
+                return JsonResponse({"message": "Profile updated successfully!", "photo_url": user.photo.url})
+            else:
+                return JsonResponse({"error": "No file uploaded"}, status=400)
+
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+>>>>>>> 67a3dc9d421a289fda60ac890387e9b50fdebdb1
