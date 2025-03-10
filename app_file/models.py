@@ -1,7 +1,4 @@
-import json
 import os
-import shutil
-import time
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.utils.timezone import now
@@ -82,7 +79,7 @@ class File(models.Model):
         except Exception as e:
             return False
 
-    # rename file or folder in a tree process
+    # modify file or folder path or name in a tree process
     @classmethod
     def modify_file_path(cls, user_id, old_relative_path, new_relative_path):
         # Check if the old file/folder exists
