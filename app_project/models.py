@@ -52,7 +52,7 @@ class Project(models.Model):
         if not project:
             return False
         file_path = File.path_FileField(file_path, user_id)
-        file = File.get_file(file_path, user_id)
+        file = File.get_file_by_path(file_path, user_id)
         if not file:
             return False, "no file"
         project.file = file

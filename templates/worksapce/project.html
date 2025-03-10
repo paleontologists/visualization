@@ -81,6 +81,7 @@
     <input type="hidden" id="projectId" value="{{ project.id }}">
     <script>
         const projectId = document.getElementById("projectId").value;
+        const sideNavProjectUrl = "{% url 'load-project' %}";
         const chooseFileUrl = "{% url 'choose-file' %}";
         const uploadUrl = "{% url 'work-upload-file' %}";
         const loadFilesUrl = "{% url 'work-load-file' %}";

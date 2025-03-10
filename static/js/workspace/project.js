@@ -98,3 +98,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+function populateTable(data) {
+    let tableHead = document.querySelector("#dataTable thead");
+    let tableBody = document.querySelector("#dataTable tbody");
+
+    tableHead.innerHTML = ""; // Clear previous headers
+    tableBody.innerHTML = ""; // Clear previous data
+
+    if (data.length === 0) {
+        document.getElementById("noFileMessage").style.display = "block";
+        return;
+    } else {
+        document.getElementById("noFileMessage").style.display = "none";
+    }
+
+    // Create table header
+    let headerRow = document.createElement("tr");
+    Object.keys(data[0]).forEach(key => {
+        let th = document.createElement("th");
+        th.innerText = key;
+        headerRow.appendChild(th);
+    });
+    tableHead.appendChild(headerRow);
+
+    // Populate table body
+    data.forEach(row => {
+        let tr = document.createElement("tr");
+        Object.values(row).forEach(value => {
+            let td = document.createElement("td");
+            td.innerText = value;
+            tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+    });
+}
