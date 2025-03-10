@@ -64,7 +64,11 @@ def user_center(request):
 
 def user_profile(request):
     """获取用户信息"""
-    user = request.use
+    user_id= request.session.get("id")
+    try:
+       user = User.objects.get(id=user_id) 
+    except:
+        return JsonResponse({"error": "User not found"}, status=404)
     user_info = {
         "first_name": user.first_name,
         "last_name": user.last_name,

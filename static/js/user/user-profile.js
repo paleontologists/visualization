@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    fetch("/user/profile/")
+    fetch(userProfileUrl)
         .then(response => response.json())
         .then(data => {
             document.getElementById("first_name").value = data.first_name || "";
