@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% load static %}
 <html lang="en">
 {% load static %}
 
@@ -60,6 +59,11 @@
             <button type="submit">Logout</button>
         </div>
     </form>
+    <script>
+        const userProfileUrl = "{% url 'user_profile' %}"
+        const csrfToken = "{{ csrf_token }}"
+    </script>
+
     <script src="{% static 'js/user/user-profile.js' %}"></script>
 
 </body>
