@@ -1,19 +1,48 @@
 a {
-    text-decoration: none; /* ✅ Removes underline */
-    color: black; /* ✅ Sets text color to black */
+    text-decoration: none; /*  Removes underline */
+    color: black; /*  Sets text color to black */
 }
 
 a:hover {
-    color: gray; /* ✅ Optional: Change color on hover */
+    color: gray; /*  Optional: Change color on hover */
 }
 
-.delete-btn {
+/* Remove line separators */
+.list-group {
+    border: none;
+    padding: 0;
+}
+
+/* Style for each row */
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: none; /* Remove default lines */
+}
+
+/* Modify time column */
+.modify-time {
+    font-size: 0.9em;
+    color: gray;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Gray buttons, turn black on hover */
+.action-btn {
     color: gray;
     cursor: pointer;
-    margin-left: 10px;
+    transition: color 0.3s;
 }
 
-.delete-btn:hover {
+.action-btn:hover {
     color: black;
 }
-

@@ -1,0 +1,28 @@
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    /* Prevents unwanted scrolling */
+    margin: 0;
+}
+
+.resize-handle:hover {
+    background-color: #555;
+}
+
+.resize-handle {
+    width: 10px;
+    cursor: ew-resize;
+    background-color: #d3d0d0;
+    transition: background-color 0.2s;
+    writing-mode: vertical-rl;
+    /* Rotates text vertically (right to left) */
+    text-orientation: upright;
+    /* Keeps text upright */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    user-select: none;
+    /* Prevent text selection */
+}
