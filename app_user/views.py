@@ -2,9 +2,7 @@ from django.shortcuts import render
 from app_user.models import User
 from visualization.settings import TEMPLATE_PATHS
 from django.http import JsonResponse
-from django.core.files.base import ContentFile
-from django.conf import settings
-import os
+
 
 # view for user to login
 def login(request):
@@ -74,6 +72,7 @@ def user_profile(request):
         "birth": user.birth.strftime("%Y-%m-%d") if user.birth else "",
         "location": user.location,
         "introduction": user.introduction,
+        "profile_photo": user.photo.url if user.photo else None,
     }
     return JsonResponse(user_info)
 
@@ -101,29 +100,28 @@ def update_profile(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 def upload_photo(request):
-    """使用 session 让用户登录后才能上传头像"""
-    if request.method == "POST" and request.FILES.get("photo"):
-        user_id = request.session.get("id")  # 从 session 获取用户 ID
+    if request.method == "POST":
+        user_id = request.session.get("id")
+
+        # 确保用户已登录
         if not user_id:
             return JsonResponse({"error": "User not logged in"}, status=403)
 
         try:
             user = User.objects.get(id=user_id)
-            photo = request.FILES["photo"]
 
-            # 删除旧头像（可选）
-            if user.photo:
-                old_photo_path = os.path.join(settings.MEDIA_ROOT, str(user.photo))
-                if os.path.exists(old_photo_path):
-                    os.remove(old_photo_path)
+            if "photo" in request.FILES:
+                user.photo = request.FILES["photo"]
+                user.save()
 
-            # 保存新头像
-            user.photo.save(photo.name, ContentFile(photo.read()))
-            user.save()
+                # 确保返回的 `photo_url` 可被前端使用
+                return JsonResponse({"message": "Profile updated successfully!", "photo_url": user.photo.url})
+            else:
+                return JsonResponse({"error": "No file uploaded"}, status=400)
 
-            return JsonResponse({"message": "Photo uploaded successfully!", "photo_url": user.photo.url})
-        
         except User.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
 
-    return JsonResponse({"error": "No file uploaded"}, status=400)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
