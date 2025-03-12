@@ -254,7 +254,7 @@ function loadFileDetail(project_id) {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) displayTable(data);
+            displayTable(data);
             let loadingSpinner = document.getElementById("loadingSpinner");
             loadingSpinner.remove();// Hide the spinner correctly
         })

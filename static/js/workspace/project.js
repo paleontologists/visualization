@@ -2,20 +2,16 @@
 window.onload = function () {
     loadFileDetail(projectId);
 };
-
 document.addEventListener("DOMContentLoaded", function () {
     const chartDom = document.getElementById("chart");
     chart = echarts.init(chartDom);
     document.getElementById("fileExplorerModal").addEventListener("shown.bs.modal", function () {
         loadFiles(false);  // Call function when modal opens to show file tree
     });
-    window.addEventListener('resize', function () {
-        chart.resize();
-    });
     exportPngButton();
     saveProjectButton();
-    initDragResize();
     initChartTypeSelector();
+    initDragResize();
 });
 
 
@@ -61,52 +57,56 @@ function saveProjectButton() {
 
 // save project config
 function saveProject() {
-    const chartType = document.getElementById("chartTypeSelect").value;
-    const xAxis = document.getElementById("xAxisSelect").value;
-    const yAxis = document.getElementById("yAxisSelect").value;
-    const xRange = document.getElementById("xRangeSlider").noUiSlider.get().map(Number);
-    const yRange = document.getElementById("yRangeSlider").noUiSlider.get().map(Number);
-    const xValues = window.fileDataGlobal.map(row => parseFloat(row[xAxis]) || 0);
-    const yValues = window.fileDataGlobal.map(row => parseFloat(row[yAxis]) || 0);
-    const xMin = Math.min(...xValues);
-    const xMax = Math.max(...xValues);
-    const yMin = Math.min(...yValues);
-    const yMax = Math.max(...yValues);
-    const xStep = parseFloat(document.getElementById("xStepInput").value) || 0.01;
-    const yStep = parseFloat(document.getElementById("yStepInput").value) || 0.01;
-    const echartsConfig = {
-        chartType: chartType,
-        xAxis: xAxis,
-        yAxis: yAxis,
-        xMin: xMin,
-        xMax: xMax,
-        yMin: yMin,
-        yMax: yMax,
-        xMinCurrent: xRange[0],
-        xMaxCurrent: xRange[1],
-        yMinCurrent: yRange[0],
-        yMaxCurrent: yRange[1],
-        xStep: xStep,
-        yStep: yStep
-    };
-    const formData = new FormData();
-    formData.append("echarts_config", JSON.stringify(echartsConfig)); // Save config only, not data
-    formData.append("project_id", projectId);
-    formData.append("project_title", projectTitle);
-    formData.append("project_description", projectDescription);
-    fetch(saveProjectUrl, {
-        method: "POST",
-        headers: { "X-CSRFToken": csrftoken },
-        body: formData
-    }).then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const activeElement = parent.document.querySelector(".active");
-                activeElement.textContent = projectTitle;
-            }
-            showAlert(data.success ? "Save chart success!" : "Save chart failed!", data.success ? "success" : "danger");
-        })
-        .catch(error => console.error("Error saving config:", error));
+    try {
+        const chartType = document.getElementById("chartTypeSelect").value;
+        const xAxis = document.getElementById("xAxisSelect").value;
+        const yAxis = document.getElementById("yAxisSelect").value;
+        const xRange = document.getElementById("xRangeSlider").noUiSlider.get().map(Number);
+        const yRange = document.getElementById("yRangeSlider").noUiSlider.get().map(Number);
+        const xValues = window.fileDataGlobal.map(row => parseFloat(row[xAxis]) || 0);
+        const yValues = window.fileDataGlobal.map(row => parseFloat(row[yAxis]) || 0);
+        const xMin = Math.min(...xValues);
+        const xMax = Math.max(...xValues);
+        const yMin = Math.min(...yValues);
+        const yMax = Math.max(...yValues);
+        const xStep = parseFloat(document.getElementById("xStepInput").value) || 0.01;
+        const yStep = parseFloat(document.getElementById("yStepInput").value) || 0.01;
+        const echartsConfig = {
+            chartType: chartType,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            xMin: xMin,
+            xMax: xMax,
+            yMin: yMin,
+            yMax: yMax,
+            xMinCurrent: xRange[0],
+            xMaxCurrent: xRange[1],
+            yMinCurrent: yRange[0],
+            yMaxCurrent: yRange[1],
+            xStep: xStep,
+            yStep: yStep
+        };
+        const formData = new FormData();
+        formData.append("echarts_config", JSON.stringify(echartsConfig)); // Save config only, not data
+        formData.append("project_id", projectId);
+        formData.append("project_title", projectTitle);
+        formData.append("project_description", projectDescription);
+        fetch(saveProjectUrl, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken },
+            body: formData
+        }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const activeElement = parent.document.querySelector(".active");
+                    activeElement.textContent = projectTitle;
+                }
+                showAlert(data.success ? "Save chart success!" : "Save chart failed!", data.success ? "success" : "danger");
+            })
+            .catch(error => console.error("Error saving config:", error));
+    } catch (error) {
+        showAlert("Save chart failed!", "danger");
+    }
 }
 
 function checkChartData() {
@@ -150,7 +150,6 @@ function initializeChart() {
     document.getElementById("yMaxLabel").textContent = projectEchartsConfig.yMax;
     initSliders();
     // Call updateChart after initializing values
-    // updateChart();
     checkChartData();
 }
 
@@ -326,13 +325,11 @@ function initDragResize() {
     const chartContainer = document.getElementById("chart-container");
     const tableContainer = document.getElementById("table-container");
     const resizeHandle = document.getElementById("resize-handle");
-
     resizeHandle.addEventListener("mousedown", function () {
         isResizing = true;
         document.addEventListener("mousemove", resize);
         document.addEventListener("mouseup", stopResize);
     });
-
     function resize(e) {
         if (isResizing) {
             let totalWidth = chartContainer.parentElement.clientWidth;
@@ -340,10 +337,11 @@ function initDragResize() {
             newChartWidth = Math.min(90, Math.max(10, newChartWidth)); // Limit between 10% - 90%
             chartContainer.style.flexBasis = newChartWidth + "%";
             tableContainer.style.flexBasis = (100 - newChartWidth) + "%";
-            chart.resize(); // Update ECharts on resize
+            resizeTimeout = requestAnimationFrame(() => {
+                chart.resize(); // Update ECharts on resize
+            });
         }
     }
-
     function stopResize() {
         isResizing = false;
         document.removeEventListener("mousemove", resize);
@@ -420,7 +418,7 @@ function updateChart() {
     const xAxis = document.getElementById("xAxisSelect").value;
     const yAxis = document.getElementById("yAxisSelect").value;
     const chartDom = document.getElementById("chart");
-    const myChart = echarts.init(chartDom);
+    chart = echarts.init(chartDom);
     if (!xAxis || !yAxis) {
         echarts.dispose(chartDom);
         chartDom.innerHTML = "";
@@ -473,7 +471,7 @@ function updateChart() {
             data: yValuesSorted
         }]
     };
-    myChart.setOption(echartsConfig);
+    chart.setOption(echartsConfig);
 }
 
 function showAlert(message, type) {
