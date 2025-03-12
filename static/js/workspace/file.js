@@ -1,6 +1,5 @@
 let currentPath = []; // Tracks the current navigation path
 let fileStructure = {}; // Stores the entire file structure in memory
-
 // request file tree from django
 function loadFiles(manage = true) {
     fetch(loadFilesUrl, { method: "GET" })
@@ -71,8 +70,6 @@ function displayFiles(path = [], manage = true) {
         item.classList.add("file-item", "d-flex", "justify-content-between", "align-items-center");
 
         let nameSpan = document.createElement("span");
-        let modifyTimeSpan = document.createElement("span");
-        modifyTimeSpan.classList.add("modify-time");
 
         if (typeof folderContents[key] === "object") {
             //  Folder: Clicking navigates inside
@@ -100,17 +97,10 @@ function displayFiles(path = [], manage = true) {
                     event.preventDefault();  // Prevent default link behavior
                     chooseFile(key);
                 });
-
-
             //  Append file link
             nameSpan.appendChild(fileLink);
-
-            //  Display modification time
-            modifyTimeSpan.textContent = folderContents[key]["modify_time"] || "N/A";
         }
-
         item.appendChild(nameSpan);
-        item.appendChild(modifyTimeSpan);
 
         if (manage) { //  Action Buttons
             let actionContainer = document.createElement("div");
@@ -183,7 +173,7 @@ function createFolder() {
         .then(response => response.json())
         .then(data => {
             if (data.success) loadFiles();
-            else alert("Failed to create folder: " + data.error);
+            else alert("Failed to create folder: " + data.text);
         })
         .catch(error => console.error("Error creating folder:", error));
 }

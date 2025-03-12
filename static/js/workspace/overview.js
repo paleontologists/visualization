@@ -10,19 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(response => response.json())
             .then(data => {
                 window.parent.addProjectToSidebar(data.project_id, data.project_title);
-                const tbody = document.querySelector("tbody");
-                const newRow = document.createElement("tr");
-                newRow.innerHTML = `
-                    <td>${data.project_id}</td>
-                    <td>${data.project_title}</td>
-                    <td>${new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })}</td>
-                    <td><span class="badge bg-info">Active</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary">View</button>
-                        <button class="btn btn-sm btn-danger delete-project">Delete</button>
-                    </td>
-                `;
-                tbody.prepend(newRow);
+                window.location.href = toOverview;
             });
     });
 
@@ -44,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Delete project using event delegation
+    // Delete project
     document.querySelector("tbody").addEventListener("click", function (event) {
         if (event.target.classList.contains("delete-project")) {
             const row = event.target.closest("tr");
@@ -98,7 +86,7 @@ function updateProjectButtons(init = false) {
 // Function to show a floating alert message
 function showAlert(message, type = "success") {
     const alertBox = document.createElement("div");
-    alertBox.className = `alert alert-${type} position-fixed top-0 end-0 m-3 p-2`;
+    alertBox.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x m-3 p-2`;
     alertBox.style.zIndex = "1050"; // Ensure it's on top
     alertBox.innerText = message;
     document.body.appendChild(alertBox);

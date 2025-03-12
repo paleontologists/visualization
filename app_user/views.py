@@ -51,6 +51,8 @@ def logout(request):
     to_page = TEMPLATE_PATHS["home"]
     message = "home"
     username = "guest"
+    user_id = request.session.get("id")
+    User.logout(user_id)
     request.session.flush()
     return render(request, to_page, {"message": message, "username": username})
 

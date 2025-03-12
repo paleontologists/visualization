@@ -65,7 +65,8 @@ def work_create_folder(request):
     relative_path = data.get("path", "").strip()  # Get the requested folder path
     if not relative_path:
         return JsonResponse({"success": False, "error": "No folder path"}, status=400)
-    return JsonResponse({"success": File.create_folder(relative_path, user_id)})
+    state, text = File.create_folder(relative_path, user_id)
+    return JsonResponse({"success": state, "text": text})
 
 
 # customer move a file or folder to another position

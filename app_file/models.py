@@ -97,11 +97,13 @@ class File(models.Model):
         user_folder = os.path.join(  # Construct the absolute folder path inside the user's directory
             settings.MEDIA_ROOT, f"{user_id}/file", relative_path
         )
+        if os.path.exists(user_folder):  # Check if folder already exists
+            return False, "folder exist"  # Folder already exists, return False
         try:  #  Create folder, avoid errors if exists
             os.makedirs(user_folder, exist_ok=True)
-            return True
+            return True, "success"
         except Exception as e:
-            return False
+            return False, "error"
 
     # modify file or folder path or name in a tree process
     @classmethod

@@ -19,7 +19,7 @@ class User(models.Model):
     photo = models.ImageField(upload_to="photos/%Y/%m/%d/", blank=True, null=True)
     status = models.CharField(max_length=20, default="inactive")
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "user"
@@ -43,6 +43,16 @@ class User(models.Model):
                 return "", "Invalid credentials", None
         except User.DoesNotExist:
             return "", "User not found", None
+
+    @classmethod
+    def logout(cls, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            user.status = "inactive"
+            user.save()
+            return True
+        except User.DoesNotExist:
+            return False
 
     @classmethod
     def register(cls, username, password):

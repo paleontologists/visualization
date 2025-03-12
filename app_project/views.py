@@ -129,7 +129,13 @@ def save_project(request):
         return render(request, to_page, data)
     user_id = request.session.get("id")
     project_id = request.POST.get("project_id")
+    project_title = request.POST.get("project_title")
+    project_description = request.POST.get("project_description")
     echarts_config = request.POST.get("echarts_config")
     return JsonResponse(
-        {"success": Project.save_project(project_id, user_id, echarts_config)}
+        {
+            "success": Project.save_project(
+                project_id, user_id, project_title, project_description, echarts_config
+            )
+        }
     )

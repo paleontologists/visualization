@@ -92,12 +92,18 @@ function saveProject() {
     const formData = new FormData();
     formData.append("echarts_config", JSON.stringify(echartsConfig)); // Save config only, not data
     formData.append("project_id", projectId);
+    formData.append("project_title", projectTitle);
+    formData.append("project_description", projectDescription);
     fetch(saveProjectUrl, {
         method: "POST",
         headers: { "X-CSRFToken": csrftoken },
         body: formData
     }).then(response => response.json())
         .then(data => {
+            if (data.success) {
+                const activeElement = parent.document.querySelector(".active");
+                activeElement.textContent = projectTitle;
+            }
             showAlert(data.success ? "Save chart success!" : "Save chart failed!", data.success ? "success" : "danger");
         })
         .catch(error => console.error("Error saving config:", error));
@@ -114,7 +120,15 @@ function checkChartData() {
 function initializeChart() {
     // Set chart type
     const chartTypeSelect = document.getElementById("chartTypeSelect");
-    if (projectEchartsConfig.chartType) chartTypeSelect.value = projectEchartsConfig.chartType;
+    chartTypeSelect.value = projectEchartsConfig.chartType || "bar";
+    chartTypeSelect.addEventListener("change", function () {
+        try {
+            updateChart(); // Try updating the chart
+        } catch (error) {
+            alert("Chart type not suitable. Reverting to previous selection.");
+            window.location.href = projectUrl;
+        }
+    });
     // Set X and Y axis selections
     const xAxisSelect = document.getElementById("xAxisSelect");
     const yAxisSelect = document.getElementById("yAxisSelect");
@@ -136,12 +150,11 @@ function initializeChart() {
     document.getElementById("yMaxLabel").textContent = projectEchartsConfig.yMax;
     initSliders();
     // Call updateChart after initializing values
-    updateChart();
+    // updateChart();
     checkChartData();
 }
 
 function initSliders() {
-    console.log(projectEchartsConfig)
     const xSliderElement = document.getElementById("xRangeSlider");
     const ySliderElement = document.getElementById("yRangeSlider");
     // Extract slider parameters from projectEchartsConfig with fallbacks
@@ -400,13 +413,6 @@ function initChartTypeSelector() {
         option.textContent = type.charAt(0).toUpperCase() + type.slice(1); // Capitalize first letter
         chartTypeSelect.appendChild(option);
     });
-
-    chartTypeSelect.value = "bar"; // Set default value
-
-    // Call updateChart whenever a new chart type is selected
-    chartTypeSelect.addEventListener("change", function () {
-        updateChart();
-    });
 }
 
 
@@ -416,8 +422,8 @@ function updateChart() {
     const chartDom = document.getElementById("chart");
     const myChart = echarts.init(chartDom);
     if (!xAxis || !yAxis) {
-        echarts.dispose(chartDom); // Properly dispose of the ECharts instance
-        chartDom.innerHTML = ""; // Remove all child elements inside chart
+        echarts.dispose(chartDom);
+        chartDom.innerHTML = "";
         return;
     }
     const fileData = window.fileDataGlobal;
@@ -502,27 +508,12 @@ document.getElementById("configBtn").addEventListener("click", function () {
     configModal.show();
 });
 
-// Live update preview as user types
-document.getElementById("configTitleInput").addEventListener("input", function () {
-    document.getElementById("previewTitle").textContent = this.value || "[Title]";
-});
-
-document.getElementById("configDescInput").addEventListener("input", function () {
-    document.getElementById("previewDesc").textContent = this.value || "[Description]";
-});
-
-// Save Config Data
+// conform Config Data
 document.getElementById("saveConfigBtn").addEventListener("click", function () {
     const title = document.getElementById("configTitleInput").value.trim();
     const description = document.getElementById("configDescInput").value.trim();
-
-    if (!title || !description) {
-        alert("Please enter both title and description.");
-        return;
-    }
-
-    console.log("Saved Config:", { title, description });
-
-    // Hide modal after saving
-    bootstrap.Modal.getInstance(document.getElementById("configModal")).hide();
+    projectTitle = title;
+    projectDescription = description;
+    bootstrap.Modal.getInstance(document.getElementById("configModal")).hide();// Hide modal after saving
+    updateChart();
 }); 

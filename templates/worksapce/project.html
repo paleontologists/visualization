@@ -47,8 +47,10 @@
             <h1 id="noDataMessage" class="position-absolute text-center text-muted">No data selected</h1>
             <div id="chart" class="w-100 h-100"></div>
         </div>
+        
         <!-- Draggable Divider -->
         <div id="resize-handle" class="resize-handle">drap</div>
+
         <!-- left Table (Default 20%) -->
         <div id="table-container" class="d-flex align-items-stretch justify-content-center bg-white overflow-hidden"
             style="flex-basis: 20%; flex-shrink: 0;">
@@ -171,7 +173,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="saveConfigBtn">Save</button>
+                    <button type="button" class="btn btn-primary" id="saveConfigBtn">Conform</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -186,8 +188,8 @@
     </script>
     <script>
         const projectId = document.getElementById("project_id").value;
-        const projectTitle = document.getElementById("project_title").value;
-        const projectDescription = document.getElementById("project_description").value;
+        let projectTitle = document.getElementById("project_title").value;
+        let projectDescription = document.getElementById("project_description").value;
         let projectEchartsConfig = {}
         try { projectEchartsConfig = JSON.parse(document.getElementById("project_echarts_config").textContent.trim()); }
         catch (error) { }

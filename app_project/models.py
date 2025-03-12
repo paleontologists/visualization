@@ -59,13 +59,18 @@ class Project(models.Model):
 
     # choose a file for project
     @classmethod
-    def save_project(cls, project_id, user_id, echarts_config):
+    def save_project(
+        cls, project_id, user_id, project_title, project_description, echarts_config
+    ):
         project = Project.work_search_id(project_id, user_id)
         if not project:
             return False
+        project.title = project_title
+        project.description = project_description
         project.echarts_config = echarts_config
         project.save()
         return True
+
 
 def generate_random_string(length=5):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
