@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("fileExplorerModal").addEventListener("shown.bs.modal", function () {
         loadFiles(false);  // Call function when modal opens to show file tree
     });
+    window.addEventListener('resize', function () {
+        chart.resize();
+    });
     exportPngButton();
     saveProjectButton();
     initChartTypeSelector();
