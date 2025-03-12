@@ -4,113 +4,227 @@ window.onload = function () {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-    let tableContainer = document.getElementById("table-container");
+    const chartDom = document.getElementById("chart");
+    chart = echarts.init(chartDom);
     document.getElementById("fileExplorerModal").addEventListener("shown.bs.modal", function () {
-        loadFiles(false);  //  Call function when modal opens to show file tree
+        loadFiles(false);  // Call function when modal opens to show file tree
     });
-    // Initialize ECharts
-    var chart = echarts.init(document.getElementById('chart'));
-    var option = {
-        title: { text: 'Chart' },
-        tooltip: {},
-        xAxis: { type: 'category', data: ['A', 'B', 'C', 'D'] },
-        yAxis: { type: 'value' },
-        series: [{ type: 'bar', data: [100, 200, 300, 400] }]
-    };
-    chart.setOption(option);
-    // Resize chart dynamically on window resize
     window.addEventListener('resize', function () {
         chart.resize();
     });
-    // Drag to resize functionality
-    let isResizing = false;
-    const chartContainer = document.getElementById("chart-container");
-    // const tableContainer = document.getElementById("table-container");
-    const resizeHandle = document.getElementById("resize-handle");
-    resizeHandle.addEventListener("mousedown", function (e) {
-        isResizing = true;
-        document.addEventListener("mousemove", resize);
-        document.addEventListener("mouseup", stopResize);
-    });
-    function resize(e) {
-        if (isResizing) {
-            let totalWidth = chartContainer.parentElement.clientWidth;
-            let newChartWidth = (e.clientX / totalWidth) * 100;
-            newChartWidth = Math.min(90, Math.max(10, newChartWidth)); // Limit between 10% - 90%
-            chartContainer.style.flexBasis = newChartWidth + "%";
-            tableContainer.style.flexBasis = (100 - newChartWidth) + "%";
-            chart.resize();// Update ECharts on resize
-        }
-    }
-    function stopResize() {
-        isResizing = false;
-        document.removeEventListener("mousemove", resize);
-        document.removeEventListener("mouseup", stopResize);
-    }
+    exportPngButton();
+    saveProjectButton();
+    initDragResize();
+    initChartTypeSelector();
 });
 
-function displayTable(fileData) {
-    const tableHeader = document.getElementById("tableHeader");
-    const tableBody = document.getElementById("tableBody");
-    const noFileMessage = document.getElementById("noFileMessage");
+
+// Main function to handle table display
+function displayTable(data) {
+    let fileData = validateFileData(data.file);
+    if (!fileData) return;
+    window.fileDataGlobal = fileData; // Store data globally for chart use
+    populateTableHeaders(fileData);
+    populateAxisSelectors(fileData);
+    initializeLazyLoading(fileData);
+    initAxisSelection();
+    initializeChart();
+}
+
+
+// the button for export png
+function exportPngButton() {
+    document.getElementById("exportPngBtn").addEventListener("click", function () {
+        // Get PNG Data URL
+        const imgData = chart.getDataURL({
+            type: "png",
+            pixelRatio: 2,
+            backgroundColor: "#fff"
+        });
+        // Create a temporary download link
+        const link = document.createElement("a");
+        link.href = imgData;
+        link.download = "chart.png";
+        link.click();
+    });
+}
+
+// the putton save project
+function saveProjectButton() {
+    document.getElementById("saveProjectBtn").addEventListener("click", function () {
+        if (!projectId)
+            alert("Project ID is missing. Cannot save chart.");
+        else
+            saveProject(); // Call saveChart function with current chart config
+    });
+}
+
+// save project config
+function saveProject() {
+    const chartType = document.getElementById("chartTypeSelect").value;
+    const xAxis = document.getElementById("xAxisSelect").value;
+    const yAxis = document.getElementById("yAxisSelect").value;
+    const xRange = document.getElementById("xRangeSlider").noUiSlider.get().map(Number);
+    const yRange = document.getElementById("yRangeSlider").noUiSlider.get().map(Number);
+    const xValues = window.fileDataGlobal.map(row => parseFloat(row[xAxis]) || 0);
+    const yValues = window.fileDataGlobal.map(row => parseFloat(row[yAxis]) || 0);
+    const xMin = Math.min(...xValues);
+    const xMax = Math.max(...xValues);
+    const yMin = Math.min(...yValues);
+    const yMax = Math.max(...yValues);
+    const xStep = parseFloat(document.getElementById("xStepInput").value) || 0.01;
+    const yStep = parseFloat(document.getElementById("yStepInput").value) || 0.01;
+    const echartsConfig = {
+        chartType: chartType,
+        xAxis: xAxis,
+        yAxis: yAxis,
+        xMin: xMin,
+        xMax: xMax,
+        yMin: yMin,
+        yMax: yMax,
+        xMinCurrent: xRange[0],
+        xMaxCurrent: xRange[1],
+        yMinCurrent: yRange[0],
+        yMaxCurrent: yRange[1],
+        xStep: xStep,
+        yStep: yStep
+    };
+    const formData = new FormData();
+    formData.append("echarts_config", JSON.stringify(echartsConfig)); // Save config only, not data
+    formData.append("project_id", projectId);
+    fetch(saveProjectUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    }).then(response => response.json())
+        .then(data => {
+            showAlert(data.success ? "Save chart success!" : "Save chart failed!", data.success ? "success" : "danger");
+        })
+        .catch(error => console.error("Error saving config:", error));
+}
+
+function checkChartData() {
+    const chartElement = document.getElementById("chart");
+    const noDataMessage = document.getElementById("noDataMessage");
+    if (chartElement.innerHTML.trim() == "") noDataMessage.style.display = "block"; // Show message
+    else noDataMessage.style.display = "none"; // Hide message
+}
+
+
+function initializeChart() {
+    // Set chart type
+    const chartTypeSelect = document.getElementById("chartTypeSelect");
+    if (projectEchartsConfig.chartType) chartTypeSelect.value = projectEchartsConfig.chartType;
+    // Set X and Y axis selections
     const xAxisSelect = document.getElementById("xAxisSelect");
     const yAxisSelect = document.getElementById("yAxisSelect");
-    const MAX_TEXT_LENGTH = 20;
-
-    noFileMessage.style.display = "none"; // Hide "No file selected" message
-
-    // Ensure fileData is parsed JSON if it's a string
-    if (typeof fileData === "string") {
-        try {
-            fileData = JSON.parse(fileData);
-        } catch (error) {
-            noFileMessage.style.display = "block";
-            return;
-        }
+    if (projectEchartsConfig.xAxis) {
+        xAxisSelect.value = projectEchartsConfig.xAxis;
+        document.getElementById("xAxisLabel").textContent = projectEchartsConfig.xAxis;
     }
-
-    // Ensure fileData is an array
-    if (!Array.isArray(fileData) || fileData.length === 0) {
-        noFileMessage.style.display = "block";
-        return;
+    if (projectEchartsConfig.yAxis) {
+        yAxisSelect.value = projectEchartsConfig.yAxis;
+        document.getElementById("yAxisLabel").textContent = projectEchartsConfig.yAxis;
     }
+    // step
+    document.getElementById("xStepInput").value = projectEchartsConfig.xStep || 0.01;
+    document.getElementById("yStepInput").value = projectEchartsConfig.yStep || 0.01;
+    // label sliders
+    document.getElementById("xMinLabel").textContent = projectEchartsConfig.xMin;
+    document.getElementById("xMaxLabel").textContent = projectEchartsConfig.xMax;
+    document.getElementById("yMinLabel").textContent = projectEchartsConfig.yMin;
+    document.getElementById("yMaxLabel").textContent = projectEchartsConfig.yMax;
+    initSliders();
+    // Call updateChart after initializing values
+    updateChart();
+    checkChartData();
+}
 
-    window.fileDataGlobal = fileData;
-    // const metadata = {
-    //     rowCount: fileData.length,
-    //     columns: Object.keys(fileData[0])
-    // };
-    // localStorage.setItem("fileMetadata", JSON.stringify(metadata));    
-    // sessionStorage.setItem("fileData", JSON.stringify(fileData));
-    // localStorage.setItem("fileData", JSON.stringify(fileData));
+function initSliders() {
+    console.log(projectEchartsConfig)
+    const xSliderElement = document.getElementById("xRangeSlider");
+    const ySliderElement = document.getElementById("yRangeSlider");
+    // Extract slider parameters from projectEchartsConfig with fallbacks
+    const xRange = [projectEchartsConfig.xMinCurrent || 0, projectEchartsConfig.xMaxCurrent || 0];
+    const yRange = [projectEchartsConfig.yMinCurrent || 0, projectEchartsConfig.yMaxCurrent || 0];
+    const xMin = projectEchartsConfig.xMin !== undefined ? projectEchartsConfig.xMin : 0;
+    const xMax = projectEchartsConfig.xMax !== undefined ? projectEchartsConfig.xMax : 0;
+    const yMin = projectEchartsConfig.yMin !== undefined ? projectEchartsConfig.yMin : 0;
+    const yMax = projectEchartsConfig.yMax !== undefined ? projectEchartsConfig.yMax : 0;
+    const xStep = projectEchartsConfig.xStep !== undefined ? projectEchartsConfig.xStep : 0.01;
+    const yStep = projectEchartsConfig.yStep !== undefined ? projectEchartsConfig.yStep : 0.01;
+    // Ensure sliders are not already initialized
+    noUiSlider.create(xSliderElement, {
+        start: xRange,
+        connect: true,
+        range: { min: xMin, max: xMax },
+        step: xStep,
+        behaviour: "drag",
+        tooltips: false
+    });
+    noUiSlider.create(ySliderElement, {
+        start: yRange,
+        connect: true,
+        range: { min: yMin, max: yMax },
+        step: yStep,
+        behaviour: "drag",
+        tooltips: false,
+    });
+    xSliderElement.noUiSlider.on("update", function (values) {
+        document.getElementById("xMinLabel").textContent = values[0];
+        document.getElementById("xMaxLabel").textContent = values[1];
+        updateChart();
+    });
+    ySliderElement.noUiSlider.on("update", function (values) {
+        document.getElementById("yMinLabel").textContent = values[0];
+        document.getElementById("yMaxLabel").textContent = values[1];
+        updateChart();
+    });
+}
 
-    // Clear previous table and axis selections
-    tableHeader.innerHTML = "";
-    tableBody.innerHTML = "";
-    xAxisSelect.innerHTML = '<option value="">Select X-Axis</option>';
-    yAxisSelect.innerHTML = '<option value="">Select Y-Axis</option>';
+// Validate fileData before proceeding
+function validateFileData(fileData) {
+    const noFileMessage = document.getElementById("noFileMessage");
+    noFileMessage.style.display = "block";
+    if (typeof fileData === "string")
+        try { fileData = JSON.parse(fileData); }
+        catch (error) { return false; }
+    if (!Array.isArray(fileData) || fileData.length === 0) return false;
+    noFileMessage.style.display = "none"; // Hide message if valid
+    return fileData;
+}
 
-    // Generate table headers dynamically
+// Populate table headers dynamically
+function populateTableHeaders(fileData) {
+    const tableHeader = document.getElementById("tableHeader");
     const headers = Object.keys(fileData[0]);
     headers.forEach(header => {
-        // Create table header
         const th = document.createElement("th");
         th.textContent = header;
         tableHeader.appendChild(th);
-
-        // Populate X and Y axis dropdowns
-        const xOption = document.createElement("option");
-        xOption.value = header;
-        xOption.textContent = header;
-        xAxisSelect.appendChild(xOption);
-
-        const yOption = document.createElement("option");
-        yOption.value = header;
-        yOption.textContent = header;
-        yAxisSelect.appendChild(yOption);
     });
+}
 
-    // Lazy load rows using Intersection Observer
+// Populate X and Y axis dropdowns
+function populateAxisSelectors(fileData) {
+    const xAxisSelect = document.getElementById("xAxisSelect");
+    const yAxisSelect = document.getElementById("yAxisSelect");
+    const headers = Object.keys(fileData[0]);
+    headers.forEach(header => {
+        const optionX = document.createElement("option");
+        optionX.value = header;
+        optionX.textContent = header;
+        xAxisSelect.appendChild(optionX);
+        const optionY = document.createElement("option");
+        optionY.value = header;
+        optionY.textContent = header;
+        yAxisSelect.appendChild(optionY);
+    });
+}
+
+// Initialize lazy loading for table rows
+function initializeLazyLoading(fileData) {
+    const tableBody = document.getElementById("tableBody");
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -120,8 +234,6 @@ function displayTable(fileData) {
             }
         });
     });
-
-    // Create placeholder rows for lazy loading
     fileData.forEach((_, index) => {
         const placeholderRow = document.createElement("tr");
         placeholderRow.setAttribute("data-index", index);
@@ -129,91 +241,288 @@ function displayTable(fileData) {
         tableBody.appendChild(placeholderRow);
         observer.observe(placeholderRow);
     });
+}
 
-    function addRowToTable(rowData) {
-        const tr = document.createElement("tr");
-        Object.values(rowData).forEach(value => {
-            const td = document.createElement("td");
+// Adds a row to the table
+function addRowToTable(rowData) {
+    const tableBody = document.getElementById("tableBody");
+    const MAX_TEXT_LENGTH = 20;
+    const tr = document.createElement("tr");
+    Object.values(rowData).forEach(value => {
+        const td = document.createElement("td");
+        let text = String(value);
+        if (text.length > MAX_TEXT_LENGTH) {
+            td.textContent = text.substring(0, MAX_TEXT_LENGTH) + "...";
+            td.setAttribute("title", text);
+        } else td.textContent = text;
+        tr.appendChild(td);
+    });
+    const placeholder = document.querySelector(`[data-index='${window.fileDataGlobal.indexOf(rowData)}']`);
+    if (placeholder) tableBody.replaceChild(tr, placeholder);
+}
 
-            let text = String(value);
-            if (text.length > MAX_TEXT_LENGTH) {
-                td.textContent = text.substring(0, MAX_TEXT_LENGTH) + "...";
-                td.setAttribute("title", text);
-            } else {
-                td.textContent = text;
-            }
+function updateStep(axisType) {
+    // Get step input directly from the field
+    let stepInput = axisType === "x" ? document.getElementById("xStepInput").value : document.getElementById("yStepInput").value;
+    let slider = axisType === "x" ? document.getElementById("xRangeSlider") : document.getElementById("yRangeSlider");
+    let step = parseFloat(stepInput) || 0.01; // Default step if input is invalid
+    if (slider.noUiSlider) slider.noUiSlider.updateOptions({ step: step });
+}
 
-            tr.appendChild(td);
+function updateSlider(axisType, selectedAxis) {
+    let slider = axisType === "x" ? document.getElementById("xRangeSlider") : document.getElementById("yRangeSlider");
+    let axisLabel = axisType === "x" ? "xAxisLabel" : "yAxisLabel";
+    let minLabel = axisType === "x" ? "xMinLabel" : "yMinLabel";
+    let maxLabel = axisType === "x" ? "xMaxLabel" : "yMaxLabel";
+    if (!selectedAxis || !window.fileDataGlobal) {
+        slider.noUiSlider.updateOptions({ range: { min: 0, max: 0 }, start: [0, 0] });
+        document.getElementById(axisLabel).textContent = "None";
+        document.getElementById(minLabel).textContent = "0";
+        document.getElementById(maxLabel).textContent = "0";
+        return;
+    }
+    const values = window.fileDataGlobal.map(row => parseFloat(row[selectedAxis]) || 0);
+    if (values.length === 0) return;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    // Update labels
+    document.getElementById(axisLabel).textContent = selectedAxis;
+    document.getElementById(minLabel).textContent = min.toFixed(2);
+    document.getElementById(maxLabel).textContent = max.toFixed(2);
+    // If slider exists, update values
+    if (slider.noUiSlider)
+        slider.noUiSlider.updateOptions({
+            range: { min: min, max: max },
+            start: [min, max]
         });
+}
 
-        const placeholder = document.querySelector(`[data-index='${fileData.indexOf(rowData)}']`);
-        if (placeholder) {
-            tableBody.replaceChild(tr, placeholder);
+// Event listener to update slider step when user leaves the input field
+document.getElementById("xStepInput").addEventListener("blur", function () {
+    updateStep("x");
+});
+
+// Event listener to update slider step when user leaves the input field
+document.getElementById("yStepInput").addEventListener("blur", function () {
+    updateStep("y");
+});
+
+// the middle drag line to change the space of chart and table
+function initDragResize() {
+    let isResizing = false;
+    const chartContainer = document.getElementById("chart-container");
+    const tableContainer = document.getElementById("table-container");
+    const resizeHandle = document.getElementById("resize-handle");
+
+    resizeHandle.addEventListener("mousedown", function () {
+        isResizing = true;
+        document.addEventListener("mousemove", resize);
+        document.addEventListener("mouseup", stopResize);
+    });
+
+    function resize(e) {
+        if (isResizing) {
+            let totalWidth = chartContainer.parentElement.clientWidth;
+            let newChartWidth = (e.clientX / totalWidth) * 100;
+            newChartWidth = Math.min(90, Math.max(10, newChartWidth)); // Limit between 10% - 90%
+            chartContainer.style.flexBasis = newChartWidth + "%";
+            tableContainer.style.flexBasis = (100 - newChartWidth) + "%";
+            chart.resize(); // Update ECharts on resize
         }
     }
 
-    let loadingSpinner = document.getElementById("loadingSpinner");
-    loadingSpinner.remove();// Hide the spinner correctly
+    function stopResize() {
+        isResizing = false;
+        document.removeEventListener("mousemove", resize);
+        document.removeEventListener("mouseup", stopResize);
+    }
 }
 
-// Handle X and Y axis selection and update the chart
-document.getElementById("updateChartBtn").addEventListener("click", function () {
+// select axis
+function initAxisSelection() {
+    document.getElementById("xAxisSelect").addEventListener("change", function () {
+        updateSlider("x", this.value);
+        checkChartData();
+    });
+    document.getElementById("yAxisSelect").addEventListener("change", function () {
+        updateSlider("y", this.value);
+        checkChartData();
+    });
+}
+
+function initChartTypeSelector() {
+    const chartTypes = [
+        // Basic Chart Types
+        "bar",            // Bar chart (standard)
+        "line",           // Line chart
+        "scatter",        // Scatter plot
+
+        // Special Variations
+        "effectScatter",  // Scatter plot with animation effects
+        "candlestick",    // Financial stock chart (OHLC)
+
+        // Pie & Donut Charts
+        "pie",            // Pie chart (can be styled as a donut)
+        "funnel",         // Funnel chart for conversion rates
+
+        // Statistical & Data Distribution
+        "boxplot",        // Box plot (statistical distribution)
+        "heatmap",        // Heatmap (color-intensity matrix)
+        "treemap",        // Treemap (hierarchical data visualization)
+        "sunburst",       // Sunburst chart (nested hierarchical data)
+        "parallel",       // Parallel coordinates (multi-dimensional comparison)
+
+        // Advanced Graphs & Networks
+        "graph",          // Graph (for network & relationship diagrams)
+        "sankey",         // Sankey diagram (flow visualization)
+
+        // Polar & Radar Charts
+        "radar",          // Radar (spider) chart
+        "gauge",          // Gauge chart (speedometer-like)
+
+        // Maps & Geospatial Charts
+        "map",            // Geographical map
+        "lines",          // Flight routes, connections on a map
+        "effectLines",    // Animated line effects on maps
+
+        // Custom & Advanced Charts
+        "pictorialBar",   // Pictogram-based bar chart
+        "themeRiver",     // Theme river (multi-series trends over time)
+        "custom"          // Custom chart (for creating unique visualizations)
+    ];
+
+    const chartTypeSelect = document.getElementById("chartTypeSelect");
+    chartTypeSelect.innerHTML = ""; // Clear existing options
+
+    chartTypes.forEach(type => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type.charAt(0).toUpperCase() + type.slice(1); // Capitalize first letter
+        chartTypeSelect.appendChild(option);
+    });
+
+    chartTypeSelect.value = "bar"; // Set default value
+
+    // Call updateChart whenever a new chart type is selected
+    chartTypeSelect.addEventListener("change", function () {
+        updateChart();
+    });
+}
+
+
+function updateChart() {
     const xAxis = document.getElementById("xAxisSelect").value;
     const yAxis = document.getElementById("yAxisSelect").value;
-
+    const chartDom = document.getElementById("chart");
+    const myChart = echarts.init(chartDom);
     if (!xAxis || !yAxis) {
-        alert("Please select both X and Y axes.");
+        echarts.dispose(chartDom); // Properly dispose of the ECharts instance
+        chartDom.innerHTML = ""; // Remove all child elements inside chart
         return;
     }
-
-    updateChart(xAxis, yAxis);
-});
-
-function updateChart(xAxis, yAxis) {
-    const fileData = window.fileDataGlobal
-
+    const fileData = window.fileDataGlobal;
     if (!fileData.length) {
         alert("No data available for chart.");
         return;
     }
-
-    // Extract data for chart
-    const xValues = fileData.map(row => row[xAxis]);
-    const yValues = fileData.map(row => parseFloat(row[yAxis]) || 0); // Ensure numeric y-values
-
-    // Combine X and Y values into pairs and sort by X values
-    const sortedData = xValues.map((x, i) => ({ x, y: yValues[i] }))
-        .sort((a, b) => a.x.localeCompare ? a.x.localeCompare(b.x) : a.x - b.x); // Handles both strings & numbers
-
-    // Extract sorted values
+    // Get slider range values
+    const xRange = document.getElementById("xRangeSlider").noUiSlider.get().map(Number);
+    const yRange = document.getElementById("yRangeSlider").noUiSlider.get().map(Number);
+    const [xMin, xMax] = xRange;
+    const [yMin, yMax] = yRange;
+    // Filter data based on selected ranges
+    const filteredData = fileData.filter(row => {
+        const xValue = parseFloat(row[xAxis]) || 0;
+        const yValue = parseFloat(row[yAxis]) || 0;
+        return xValue >= xMin && xValue <= xMax && yValue >= yMin && yValue <= yMax;
+    });
+    const xValues = filteredData.map(row => row[xAxis]);
+    const yValues = filteredData.map(row => parseFloat(row[yAxis]) || 0);
+    // Sort filtered data
+    const sortedData = xValues.map((x, i) => ({ x, y: yValues[i] })).sort((a, b) => a.x - b.x);
     const xValuesSorted = sortedData.map(d => d.x);
     const yValuesSorted = sortedData.map(d => d.y);
-
-
     // Initialize ECharts instance
-    const chartDom = document.getElementById("chart");
-    const myChart = echarts.init(chartDom);
-
+    const chartType = document.getElementById("chartTypeSelect").value;
     // Configure ECharts options
-    const option = {
+    const echartsConfig = {
         title: {
-            text: `${yAxis} vs ${xAxis}`
+            text: projectTitle + `: ${yAxis} vs ${xAxis}`,
+            subtext: projectDescription,
+            left: "left",
         },
-        tooltip: {},
-        xAxis: {
-            type: "category",
-            data: xValuesSorted
+        tooltip: {
+            trigger: "axis", // Shows tooltip when hovering over the axis
+            axisPointer: { type: "cross" }, // Adds a crosshair effect
+            formatter: function (params) {
+                let data = params[0]; // Extract the first data point
+                return `X: ${data.name} <br> Y: ${data.value}`;
+            }
         },
-        yAxis: {
-            type: "value"
-        },
+        xAxis: { type: "category", data: xValuesSorted },
+        yAxis: { type: "value" },
         series: [{
             name: yAxis,
-            type: "bar", // Change to "bar" or other chart type if needed
+            type: chartType,
             data: yValuesSorted
         }]
     };
-
-    // Render the chart
-    myChart.setOption(option);
+    myChart.setOption(echartsConfig);
 }
+
+function showAlert(message, type) {
+    // Remove existing alert if present
+    const existingAlert = document.getElementById("dynamicAlert");
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+
+    // Create alert div
+    const alertDiv = document.createElement("div");
+    alertDiv.id = "dynamicAlert";
+    alertDiv.className = `alert-message alert-${type}`;
+    alertDiv.textContent = message;
+
+    document.body.appendChild(alertDiv);
+
+    // Show alert with smooth fade-in at the top-middle
+    setTimeout(() => {
+        alertDiv.classList.add("show-alert");
+    }, 50);
+
+    // Auto-hide after 3 seconds with smooth fade-out
+    setTimeout(() => {
+        alertDiv.classList.remove("show-alert");
+        setTimeout(() => alertDiv.remove(), 500); // Remove from DOM after transition
+    }, 3000);
+}
+
+document.getElementById("configBtn").addEventListener("click", function () {
+    const configModal = new bootstrap.Modal(document.getElementById("configModal"));
+    configModal.show();
+});
+
+// Live update preview as user types
+document.getElementById("configTitleInput").addEventListener("input", function () {
+    document.getElementById("previewTitle").textContent = this.value || "[Title]";
+});
+
+document.getElementById("configDescInput").addEventListener("input", function () {
+    document.getElementById("previewDesc").textContent = this.value || "[Description]";
+});
+
+// Save Config Data
+document.getElementById("saveConfigBtn").addEventListener("click", function () {
+    const title = document.getElementById("configTitleInput").value.trim();
+    const description = document.getElementById("configDescInput").value.trim();
+
+    if (!title || !description) {
+        alert("Please enter both title and description.");
+        return;
+    }
+
+    console.log("Saved Config:", { title, description });
+
+    // Hide modal after saving
+    bootstrap.Modal.getInstance(document.getElementById("configModal")).hide();
+}); 

@@ -264,8 +264,9 @@ function loadFileDetail(project_id) {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) displayTable(data.file);
-            else alert("Error");
+            if (data.success) displayTable(data);
+            let loadingSpinner = document.getElementById("loadingSpinner");
+            loadingSpinner.remove();// Hide the spinner correctly
         })
         .catch(error => console.error("Error selecting file:", error));
 }
@@ -284,7 +285,6 @@ function chooseFile(fileName) {
         .then(data => {
             if (data.success) {
                 // Close Bootstrap Modal
-                // console.log(data.data.json_file);
                 let modalElement = document.getElementById("fileExplorerModal");
                 let modalInstance = bootstrap.Modal.getInstance(modalElement);
                 if (modalInstance) modalInstance.hide(); // Close modal

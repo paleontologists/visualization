@@ -9,29 +9,49 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/work-project.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
 </head>
 
 <body class="vh-100 d-flex flex-column m-0">
-
-    <!-- Top Section (Button Row) -->
-    <div class="d-flex align-items-center justify-content-center bg-primary text-white p-2">
-        <button class="btn btn-light">Top Button</button>
+    <!-- Top Section -->
+    <div class="d-flex align-items-center bg-primary text-white p-2">
+        <!-- Left side buttons -->
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-light" id="saveProjectBtn">Save Project</button>
+            <button class="btn btn-light" id="chooseFileBtn" data-bs-toggle="modal" data-bs-target="#fileExplorerModal">
+                Choose File
+            </button>
+            <button class="btn btn-light" id="exportPngBtn">Export PNG</button>
+        </div>
+        <!-- Project title -->
+        <div class="flex-grow-1 mx-3 d-flex justify-content-between align-items-center text-truncate-container">
+            <span class="text-light opacity-75 text-truncate">
+                {{ project.title }}
+            </span>
+            <span class="text-light opacity-75 flex-shrink-0 ms-3">
+                Last update: {{ project.update }}
+            </span>
+        </div>
+        <!-- Right side Config button -->
+        <div class="flex-shrink-0">
+            <button class="btn btn-light" id="configBtn">Config</button>
+        </div>
     </div>
 
     <!-- Middle Section (Resizable Chart & Table) -->
     <div class="d-flex flex-grow-1 overflow-hidden">
-        <!-- Left Chart (Default 70%) -->
+        <!-- right Chart (Default 80%) -->
         <div id="chart-container" class="d-flex align-items-center justify-content-center bg-light"
-            style="flex-basis: 70%; flex-shrink: 0;">
+            style="flex-basis: 80%; flex-shrink: 0;">
+            <h1 id="noDataMessage" class="position-absolute text-center text-muted">No data selected</h1>
             <div id="chart" class="w-100 h-100"></div>
         </div>
-
         <!-- Draggable Divider -->
         <div id="resize-handle" class="resize-handle">drap</div>
-
-        <!-- Right Table (Default 30%) -->
+        <!-- left Table (Default 20%) -->
         <div id="table-container" class="d-flex align-items-stretch justify-content-center bg-white overflow-hidden"
-            style="flex-basis: 30%; flex-shrink: 0;">
+            style="flex-basis: 20%; flex-shrink: 0;">
             <div class="overflow-auto w-100 h-100 m-0 p-0">
                 <h1 id="noFileMessage" class="text-center text-muted">No file selected</h1>
                 <!-- Loading Spinner -->
@@ -52,25 +72,60 @@
 
     <!-- Bottom Controller -->
     <div class="d-flex flex-column bg-secondary text-white p-2">
-        <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">Row 1</div>
-        <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">Row 2</div>
+        <!-- Row: X and Y Range Selectors -->
         <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">
-            <button class="btn btn-light" id="chooseFileBtn" data-bs-toggle="modal" data-bs-target="#fileExplorerModal">
-                Choose File
-            </button>
-            <button class="btn btn-light" id="bottomControllerBtn">Bottom Controller</button>
+            <!-- X-Axis Container -->
+            <div class="slider-container">
+                <!-- X-Axis Labels and Step Input (First Line) -->
+                <div class="d-flex align-items-center slider-labels">
+                    <span class="slider-label me-2">X:</span>
+                    <span id="xAxisLabel" class="fw-bold me-2">None</span>
+                    <span id="xMinLabel" class="fw-bold me-2">0</span>
+                    <span>to</span>
+                    <span id="xMaxLabel" class="fw-bold ms-2">0</span>
+                    <label for="xStepInput" class="ms-3 me-2">Step:</label>
+                    <input type="number" id="xStepInput" class="form-control form-control-sm w-auto mb-1" value="0.01"
+                        step="0.01">
+                </div>
+                <!-- X-Axis Slider (Second Line) -->
+                <div class="slider-wrapper">
+                    <div id="xRangeSlider" class="w-100 mx-3"></div>
+                </div>
+            </div>
+            <!-- Y-Axis Container -->
+            <div class="slider-container">
+                <!-- Y-Axis Labels and Step Input (First Line) -->
+                <div class="d-flex align-items-center slider-labels">
+                    <span class="slider-label me-2">Y:</span>
+                    <span id="yAxisLabel" class="fw-bold me-2">None</span>
+                    <span id="yMinLabel" class="fw-bold me-2">0</span>
+                    <span>to</span>
+                    <span id="yMaxLabel" class="fw-bold ms-2">0</span>
+                    <label for="yStepInput" class="ms-3 me-2">Step:</label>
+                    <input type="number" id="yStepInput" class="form-control form-control-sm w-auto mb-1" value="0.01"
+                        step="0.01">
+                </div>
+                <!-- Y-Axis Slider (Second Line) -->
+                <div class="slider-wrapper">
+                    <div id="yRangeSlider" class="w-100 mx-3"></div>
+                </div>
+            </div>
+        </div>
 
-            <!-- X and Y Axis Selection -->
+        <!-- Row: X and Y Selection -->
+        <div class="d-flex align-items-center justify-content-center flex-grow-1 p-2">
+            <span>X:</span>
             <select id="xAxisSelect" class="form-select mx-2">
                 <option value="">Select X-Axis</option>
             </select>
+            <span>Y:</span>
             <select id="yAxisSelect" class="form-select mx-2">
                 <option value="">Select Y-Axis</option>
             </select>
-            <button class="btn btn-success" id="updateChartBtn">Update Chart</button>
+            <span>chart:</span>
+            <select id="chartTypeSelect" class="form-select mx-2"></select>
         </div>
     </div>
-
 
     <!-- Custom Alert (Bootstrap Modal) -->
     <div class="modal fade" id="fileExplorerModal" tabindex="-1" aria-labelledby="fileExplorerLabel" aria-hidden="true">
@@ -95,9 +150,48 @@
             </div>
         </div>
     </div>
-    <input type="hidden" id="projectId" value="{{ project.id }}">
+
+    <!-- Custom Config Modal -->
+    <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="configModalLabel">Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="configTitleInput" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="configTitleInput" value="{{ project.title }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="configDescInput" class="form-label">Description</label>
+                        <textarea class="form-control" id="configDescInput"
+                            rows="5">{{ project.description }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveConfigBtn">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="project_id" value="{{ project.id }}">
+    <input type="hidden" id="project_title" value="{{ project.title }}">
+    <input type="hidden" id="project_description" value="{{ project.description }}">
+    <script id="project_echarts_config" type="application/json">
+        {{ project.echarts_config|safe }}
+    </script>
     <script>
-        const projectId = document.getElementById("projectId").value;
+        const projectId = document.getElementById("project_id").value;
+        const projectTitle = document.getElementById("project_title").value;
+        const projectDescription = document.getElementById("project_description").value;
+        let projectEchartsConfig = {}
+        try { projectEchartsConfig = JSON.parse(document.getElementById("project_echarts_config").textContent.trim()); }
+        catch (error) { }
+        const saveProjectUrl = "{% url 'save-project' %}";
         const chooseFileUrl = "{% url 'choose-file' %}";
         const uploadUrl = "{% url 'work-upload-file' %}";
         const loadFilesUrl = "{% url 'work-load-file' %}";

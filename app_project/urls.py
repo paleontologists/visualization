@@ -19,4 +19,5 @@ urlpatterns = [
         name="work-load-project",
     ),
     path("choose_file", view=choose_file, name="choose-file"),
+    path("save_project", view=save_project, name="save-project"),
 ]

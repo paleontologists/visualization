@@ -118,3 +118,18 @@ def choose_file(request):
     file_path = request.POST.get("file_path")
     state, text = Project.work_choose_file(project_id, user_id, file_path)
     return JsonResponse({"success": state, "text": text})
+
+
+# save project
+def save_project(request):
+    to_page = TEMPLATE_PATHS["home"]
+    username = request.session.get("username", "guest")
+    data = {"username": username}
+    if username == "guest":
+        return render(request, to_page, data)
+    user_id = request.session.get("id")
+    project_id = request.POST.get("project_id")
+    echarts_config = request.POST.get("echarts_config")
+    return JsonResponse(
+        {"success": Project.save_project(project_id, user_id, echarts_config)}
+    )

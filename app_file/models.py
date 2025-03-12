@@ -55,18 +55,20 @@ class File(models.Model):
             title=title if title else uploaded_file.name,
             description=description,
         )
-    
+
     # load single file to json
     @classmethod
     def load_file(cls, project_id, user_id):
+        state = True
         try:
             from app_project.models import Project
             project = Project.work_search_id(project_id, user_id)
             file = File.get_file_by_id(project.file.id, user_id)
             json_file = File.read_file_to_json(file)
         except:
+            state = False
             json_file = None
-        return json_file
+        return state, json_file
 
     # return file tree structure
     @classmethod

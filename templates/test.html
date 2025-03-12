@@ -3,112 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lazy Loaded Table (Intersection Observer)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #table-container {
-            width: 100vw;
-            height: 80vh;
-            overflow-y: auto;
-            border: 2px solid black;
-            background-color: white;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 4px;
-            text-align: center;
-            min-width: 60px;
-            height: 30px;
-        }
-        th {
-            background-color: #f4f4f4;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-        .loading {
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 10px;
-        }
-    </style>
+    <title>Simple Candlestick Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
 </head>
 <body>
-
-    <h2>Lazy Loaded Table using Intersection Observer</h2>
-    <div id="table-container">
-        <table id="lazy-table">
-            <thead>
-                <tr id="table-header"></tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-        </table>
-        <div id="loading" class="loading">Loading...</div>
-    </div>
+    <div id="chart" style="width: 600px; height: 400px;"></div>
 
     <script>
-        const ROWS = 10000;
-        const COLS = 10; // Only load 10 columns for better performance
-        const BATCH_SIZE = 50; // Load 50 rows at a time
-        let loadedRows = 0;
+        // Sample Candlestick Data [Open, Close, Low, High]
+        const candlestickData = [
+            [100, 105, 98, 110],  // Day 1
+            [106, 103, 101, 108], // Day 2
+            [102, 107, 100, 109], // Day 3
+            [108, 110, 107, 113], // Day 4
+            [109, 105, 103, 111]  // Day 5
+        ];
 
-        const tableHeader = document.getElementById("table-header");
-        const tableBody = document.getElementById("table-body");
-        const loadingIndicator = document.getElementById("loading");
+        // Chart Configuration
+        const option = {
+            title: { text: 'Simple Candlestick Chart', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+            yAxis: { type: 'value', scale: true },
+            series: [{
+                type: 'candlestick',
+                data: candlestickData
+            }]
+        };
 
-        // Create table headers dynamically
-        function createTableHeaders() {
-            for (let col = 0; col < COLS; col++) {
-                const th = document.createElement("th");
-                th.textContent = `Col ${col}`;
-                tableHeader.appendChild(th);
-            }
-        }
-
-        // Load next batch of rows
-        function loadRows() {
-            const fragment = document.createDocumentFragment();
-            for (let i = loadedRows; i < loadedRows + BATCH_SIZE && i < ROWS; i++) {
-                const tr = document.createElement("tr");
-                for (let j = 0; j < COLS; j++) {
-                    const td = document.createElement("td");
-                    td.textContent = `R${i}C${j}`;
-                    tr.appendChild(td);
-                }
-                fragment.appendChild(tr);
-            }
-            tableBody.appendChild(fragment);
-            loadedRows += BATCH_SIZE;
-
-            // Hide loading indicator when all rows are loaded
-            if (loadedRows >= ROWS) {
-                loadingIndicator.style.display = "none";
-            }
-        }
-
-        // Create an Intersection Observer for lazy loading
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    loadRows();
-                }
-            });
-        }, { root: document.getElementById("table-container"), threshold: 0.5 });
-
-        // Attach observer to the loading div
-        observer.observe(loadingIndicator);
-
-        // Initialize table headers and first rows
-        createTableHeaders();
-        loadRows();
+        // Initialize and Render Chart
+        const chartDom = document.getElementById("chart");
+        const myChart = echarts.init(chartDom);
+        myChart.setOption(option);
     </script>
-
 </body>
 </html>

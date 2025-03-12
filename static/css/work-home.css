@@ -11,3 +11,7 @@ iframe {
     height: 100%;
     border: none; /* Removes default iframe border */
 }
+
+.sidebar {
+    border-right: 1px solid #919191; /* Light gray border */
+}

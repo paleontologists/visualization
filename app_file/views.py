@@ -49,8 +49,8 @@ def work_detail_file(request):
         return render(request, to_page, data)
     user_id = request.session.get("id")
     project_id = request.GET.get("project_id")
-    json_file = File.load_file(project_id, user_id)
-    return JsonResponse({"success": True, "file": json_file})
+    state, json_file = File.load_file(project_id, user_id)
+    return JsonResponse({"success": state, "file": json_file})
 
 
 # customer create a folder
