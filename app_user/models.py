@@ -8,7 +8,7 @@ class User(models.Model):
     group = models.CharField(max_length=8, default="customer")
     username = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=255)
-    email = models.EmailField(unique=True, blank=True, null=True)
+    email = models.EmailField(unique=False, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
