@@ -1,5 +1,6 @@
 // if user haven't login than they need to login
 document.getElementById('enter-workbench').addEventListener('click', function () {
+    var username = window.parent.document.body.getAttribute('data-username');
     if (username == 'guest') {
         alert('Please log in to continue.');
         window.parent.location.href = loginUrl;

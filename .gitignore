@@ -25,7 +25,6 @@ db.sqlite3
 *.sqlite3
 
 # Ignore everything inside static/img and media
-static/img/*
 media/*
 
 # But allow .gitkeep files to be tracked

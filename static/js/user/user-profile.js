@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch(userProfileUrl)
         .then(response => response.json())
         .then(data => {
-            console.log("DEBUG: Received Data from API:", data);  // **打印 API 返回的数据**
             document.getElementById("first_name").value = data.first_name || "";
             document.getElementById("last_name").value = data.last_name || "";
             document.getElementById("email").value = data.email || "";
@@ -12,13 +11,13 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("location").value = data.location || "";
             document.getElementById("introduction").value = data.introduction || "";
             document.getElementById("profile_photo").src = data.profile_photo || "";
-             // **✨ 更新右侧项目 & 文件数量 ✨**
-             document.getElementById("project_count").innerText = data.project_count || "0";
-             document.getElementById("file_count").innerText = data.file_count || "0";
+            document.getElementById("project_count").innerText = data.project_count || "0";
+            document.getElementById("file_count").innerText = data.file_count || "0";
         })
         .catch(error => console.error("Error loading profile:", error));
 });
-// 监听上传按钮
+
+// update
 document.getElementById("upload-photo-btn").addEventListener("click", function () {
     let fileInput = document.getElementById("upload-photo");
     console.log(fileInput.files);
@@ -34,17 +33,17 @@ document.getElementById("upload-photo-btn").addEventListener("click", function (
         method: "POST",
         body: formData,
         headers: {
-            "X-CSRFToken": csrfToken
+            "X-CSRFToken": csrftoken
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.photo_url) {
-            document.getElementById("profile_photo").src = data.photo_url; // 服务器返回的新图片URL
-            alert("Photo uploaded successfully!");
-        } else {
-            alert("Upload failed!");
-        }
-    })
-    .catch(error => console.error("Error uploading photo:", error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.photo_url) {
+                document.getElementById("profile_photo").src = data.photo_url; // return photo URL
+                alert("Photo uploaded successfully!");
+            } else {
+                alert("Upload failed!");
+            }
+        })
+        .catch(error => console.error("Error uploading photo:", error));
 });

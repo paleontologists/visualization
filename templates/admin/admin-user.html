@@ -1,66 +1,24 @@
-<!DOCTYPE html>
-<html lang="zh">
+{% extends "base.html" %}
 {% load static %}
+{% block content %}
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        :root {
-            --aquamarine: #7fffd4; 
-        }
-        .bg-aquamarine {
-            background-color: var(--aquamarine) !important;
-        }
-        .text-aquamarine {
-            color: var(--aquamarine) !important;
-        }
-        .btn-aquamarine {
-            background-color: var(--aquamarine);
-            border-color: var(--aquamarine);
-        }
-        .btn-aquamarine:hover {
-            background-color: #5fd0b1;
-            border-color: #5fd0b1;
-        }
-        .sidebar {
-            
-            min-height: 100vh;
-            width: 200px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 20px; 
-        }
-        .main-content {
-            margin-left: 250px; 
-            padding-top: 56px; 
-        }
-        .navbar {
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 200px; 
-            z-index: 1030;
-        }
-        #reportImage {
-            display: none; 
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/admin-user.css' %}">
 </head>
+
 <body>
 
     <!-- sidebar -->
-    <nav class="sidebar d-flex flex-column p-3 text-white shadow" style="background-image: linear-gradient(0deg, #84fab0 0%, #8fd3f4 100%); min-height: 100vh; margin: 0; background-attachment: fixed; background-size: cover;">
+    <nav class="sidebar d-flex flex-column p-3 text-white shadow"
+        style="background-image: linear-gradient(0deg, #84fab0 0%, #8fd3f4 100%); min-height: 100vh; margin: 0; background-attachment: fixed; background-size: cover;">
         <div class="position-sticky">
-            
-            
-            <a href="{% url 'admin-home' %}" class=" navbar-brand px-3 mb-3 d-flex align-items-center justify-content-center">
+
+
+            <a href="{% url 'admin-home' %}"
+                class=" navbar-brand px-3 mb-3 d-flex align-items-center justify-content-center">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="bi bi-kanban" style="font-size: 1.5rem; color: rgb(255, 255, 255);" ></i>
+                    <i class="bi bi-kanban" style="font-size: 1.5rem; color: rgb(255, 255, 255);"></i>
                 </div>
                 <div class="sidebar-brand-text mx-3 fw-bold ">Dashborad</div>
             </a>
@@ -90,7 +48,7 @@
                             <i class="bi bi-people me-2"></i>
                             File
                         </a>
-                    </li> 
+                    </li>
                 </ul>
             </ul>
         </div>
@@ -124,13 +82,14 @@
             <!-- dashboard -->
             <div class="pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">User</h1>
-               
+
                 <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
                     <i class="bi bi-person-plus"></i> Add User
                 </button>
             </div>
 
-            <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+            <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel"
+                aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header bg-aquamarine text-white">
@@ -180,249 +139,131 @@
 
             <div class="row align-items-start d-flex">
 
-            <div class="col-md-12">
-                <div class="card mb-4 shadow">
-                    <div class="card-header bg-aquamarine text-white">
-                        <strong>User List</strong>
-                    </div>
-                    <div class="card-body table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 5%;">ID</th>
-                                    <th style="width: 8%;">Group</th>
-                                    <th style="width: 10%;">Username</th>
-                                    <th style="width: 15%;">Email</th>
-                                    <th style="width: 10%;">Phone</th>
-                                    <th style="width: 10%;">First Name</th>
-                                    <th style="width: 10%;">Last Name</th>
-                                    <th style="width: 5%;">Gender</th>
-                                    <th style="width: 10%;">Birth</th>
-                                    <th style="width: 15%;">Introduction</th>
-                                    <th style="width: 10%;">Location</th>
-                                    <th style="width: 8%;">Photo</th>
-                                    <th style="width: 8%;">Status</th>
-                                    <th style="width: 12%;">Date Joined</th>
-                                    <th style="width: 12%;">Last Login</th>
-                                    <th style="width: 8%;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                <tr id="user-row-{{ user.id }}">
-                                    <td>{{ user.id }}</td>
-                                    <td>{{ user.group }}</td>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.email }}</td>
-                                    <td>{{ user.phone }}</td>
-                                    <td>{{ user.first_name }}</td>
-                                    <td>{{ user.last_name }}</td>
-                                    <td>{{ user.gender }}</td>
-                                    <td>{{ user.birth }}</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="{{ user.introduction }}">
-                                        {{ user.introduction }}
-                                    </td>
-                                    <td>{{ user.location }}</td>
-                                    <td class="text-center">
-                                        {% if user.photo %}
-                                            <img src="{{ user.photo.url }}" alt="User Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
-                                        {% else %}
+                <div class="col-md-12">
+                    <div class="card mb-4 shadow">
+                        <div class="card-header bg-aquamarine text-white">
+                            <strong>User List</strong>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 5%;">ID</th>
+                                        <th style="width: 8%;">Group</th>
+                                        <th style="width: 10%;">Username</th>
+                                        <th style="width: 15%;">Email</th>
+                                        <th style="width: 10%;">Phone</th>
+                                        <th style="width: 10%;">First Name</th>
+                                        <th style="width: 10%;">Last Name</th>
+                                        <th style="width: 5%;">Gender</th>
+                                        <th style="width: 10%;">Birth</th>
+                                        <th style="width: 15%;">Introduction</th>
+                                        <th style="width: 10%;">Location</th>
+                                        <th style="width: 8%;">Photo</th>
+                                        <th style="width: 8%;">Status</th>
+                                        <th style="width: 12%;">Date Joined</th>
+                                        <th style="width: 12%;">Last Login</th>
+                                        <th style="width: 8%;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr id="user-row-{{ user.id }}">
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.group }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.phone }}</td>
+                                        <td>{{ user.first_name }}</td>
+                                        <td>{{ user.last_name }}</td>
+                                        <td>{{ user.gender }}</td>
+                                        <td>{{ user.birth }}</td>
+                                        <td class="text-truncate" style="max-width: 200px;"
+                                            title="{{ user.introduction }}">
+                                            {{ user.introduction }}
+                                        </td>
+                                        <td>{{ user.location }}</td>
+                                        <td class="text-center">
+                                            {% if user.photo %}
+                                            <img src="{{ user.photo.url }}" alt="User Photo" class="img-thumbnail"
+                                                style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
                                             No Photo
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ user.status }}</td>
-                                    <td>{{ user.date_joined|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ user.last_login|date:"Y-m-d H:i" }}</td>
-                                    <td>
-                                        <button class="btn btn-warning btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editUserModal"
-                                            data-user-id="{{ user.id }}"
-                                            data-username="{{ user.username }}"
-                                            data-email="{{ user.email }}"
-                                            data-phone="{{ user.phone }}"
-                                            data-group="{{ user.group }}"
-                                            data-status="{{ user.status }}">
-                                            <i class="bi bi-pencil-square"></i> Edit
-                                        </button>
-                                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteUser({{ user.id }})">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Edit User Modal -->
-            <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-warning text-white">
-                            <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            {% csrf_token %}
-                            <input type="hidden" id="edit-user-id">
-                            <div class="mb-3">
-                                <label for="edit-username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="edit-username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit-email">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-phone" class="form-label">Phone</label>
-                                <input type="text" class="form-control" id="edit-phone">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-group" class="form-label">Group</label>
-                                <select class="form-select" id="edit-group">
-                                    <option value="customer">Customer</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="staff">Staff</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-status" class="form-label">Status</label>
-                                <select class="form-select" id="edit-status">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                            <button id="saveChangesBtn" class="btn btn-primary w-100">Save Changes</button>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.status }}</td>
+                                        <td>{{ user.date_joined|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ user.last_login|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm edit-btn" data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal" data-user-id="{{ user.id }}"
+                                                data-username="{{ user.username }}" data-email="{{ user.email }}"
+                                                data-phone="{{ user.phone }}" data-group="{{ user.group }}"
+                                                data-status="{{ user.status }}">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </button>
+                                            <button class="btn btn-danger btn-sm delete-btn"
+                                                onclick="deleteUser({{ user.id }})">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
+
+
+                <!-- Edit User Modal -->
+                <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% csrf_token %}
+                                <input type="hidden" id="edit-user-id">
+                                <div class="mb-3">
+                                    <label for="edit-username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="edit-username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="edit-email">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-phone" class="form-label">Phone</label>
+                                    <input type="text" class="form-control" id="edit-phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-group" class="form-label">Group</label>
+                                    <select class="form-select" id="edit-group">
+                                        <option value="customer">Customer</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="staff">Staff</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-status" class="form-label">Status</label>
+                                    <select class="form-select" id="edit-status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <button id="saveChangesBtn" class="btn btn-primary w-100">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            </div>
-            
-            
-            <script>
-            //  delete
-            const adminUserDeleteUrl = "{% url 'admin-user-delete' %}";
-            const csrftoken = "{{ csrf_token }}";
-
-                window.addEventListener('resize', function() {
-                location.reload();
-            });
-
-            function deleteUser(userId) {
-                if (!confirm("Are you sure you want to delete this user?")) return;
-                const formData = new FormData();
-                formData.append("user_id", userId);  
-                fetch(adminUserDeleteUrl, {
-                    method: "POST",
-                    headers: { "X-CSRFToken": csrftoken },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        alert(data.message);
-                        document.getElementById(`user-row-${userId}`).remove();
-                    } else {
-                        alert("Error deleting user.");
-                    }
-                })
-                .catch(error => console.error("Error:", error));
-            }
-
-                // edit
-                document.addEventListener("DOMContentLoaded", function () {
-                    const editUserModal = document.getElementById("editUserModal");
-                    const editUserForm = document.getElementById("editUserForm");
-
-                    // Monitor the "Edit" button click event and fill in the form data
-                    document.querySelectorAll(".edit-btn").forEach(button => {
-                        button.addEventListener("click", function () {
-                            document.getElementById("edit-user-id").value = this.getAttribute("data-user-id");
-                            document.getElementById("edit-username").value = this.getAttribute("data-username");
-                            document.getElementById("edit-email").value = this.getAttribute("data-email");
-                            document.getElementById("edit-phone").value = this.getAttribute("data-phone");
-                            document.getElementById("edit-group").value = this.getAttribute("data-group");
-                            document.getElementById("edit-status").value = this.getAttribute("data-status");
-                        });
-                    });
-
-                    const saveChangesBtn = document.getElementById("saveChangesBtn");
-                    saveChangesBtn.addEventListener("click", function () {
-                        const userId = document.getElementById("edit-user-id").value;
-                        const username = document.getElementById("edit-username").value;
-                        const email = document.getElementById("edit-email").value;
-                        const phone = document.getElementById("edit-phone").value;
-                        const group = document.getElementById("edit-group").value;
-                        const status = document.getElementById("edit-status").value;
-                        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                        const formData = new FormData();
-                        formData.append("user_id", userId);
-                        formData.append("username", username);
-                        formData.append("email", email);
-                        formData.append("phone", phone);
-                        formData.append("group", group);
-                        formData.append("status", status);
-
-                        fetch("{% url 'admin-user-edit' %}", {
-                            method: "POST",
-                            headers: { "X-CSRFToken": csrftoken },
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert("User updated successfully!");
-                                location.reload(); 
-                            } else {
-                                alert("Failed to update user: " + data.error);
-                            }
-                        })
-                        .catch(error => console.error("Error:", error));
-                    });
-            });
-
-
-            //add
-            document.addEventListener("DOMContentLoaded", function () {
-                const addUserForm = document.getElementById("addUserForm");
-
-                addUserForm.addEventListener("submit", function (event) {
-                    event.preventDefault(); 
-
-                    const formData = new FormData(addUserForm);
-                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                    fetch("{% url 'admin-user-add' %}", {
-                        method: "POST",
-                        headers: { "X-CSRFToken": csrftoken },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert("Error adding user: " + data.message);
-                        }
-                    })
-                    .catch(error => console.error("Error:", error));
-                });
-            });
-
-            
-    
-
-
-</script>
-                
-                     
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/admin/admin-user.js' %}"></script>
 </body>
-</html>
-
+{% endblock %}

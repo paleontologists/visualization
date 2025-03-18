@@ -278,7 +278,7 @@ function chooseFile(fileName) {
                 let modalElement = document.getElementById("fileExplorerModal");
                 let modalInstance = bootstrap.Modal.getInstance(modalElement);
                 if (modalInstance) modalInstance.hide(); // Close modal
-                window.location.href = projectUrl;
+                window.location.href = `${loadProjectUrl}/${projectId}/`;
             }
             else alert("Error");
         })

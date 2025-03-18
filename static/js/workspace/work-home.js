@@ -1,3 +1,10 @@
+var workProjectList;
+var overview;
+document.addEventListener("DOMContentLoaded", function () {
+    workProjectList = JSON.parse(document.getElementById("work_project_list").textContent);
+    overview = document.getElementById("workspace-overview");
+});
+
 // left navigator click handling (for existing sidebar links)
 document.querySelectorAll('#sideNav .nav-link').forEach(function (navLink) {
     navLink.addEventListener('click', function (event) {
@@ -29,7 +36,7 @@ function addProjectToSidebar(projectId, projectTitle) {
     projectLink.classList.add("nav-link", "flex-grow-1");
     projectLink.href = "#";
     projectLink.innerText = projectTitle;
-    projectLink.setAttribute("data-url", `${sideNavProjectUrl}/${projectId}`);
+    projectLink.setAttribute("data-url", `${loadProjectUrl}/${projectId}`);
 
     // Create "X" remove button
     const removeButton = document.createElement("button");
@@ -71,7 +78,7 @@ function activeSidebar(linkElement, projectUrl) {
 function removeProjectFromSidebar(projectId) {
     if (workProjectList.some(p => p.id == projectId)) {
         const activeProject = document.querySelector("#sideNav .nav-link.active");
-        if (activeProject && activeProject.dataset.url.includes(`${sideNavProjectUrl}/${projectId}`))
+        if (activeProject && activeProject.dataset.url.includes(`${loadProjectUrl}/${projectId}`))
             window.parent.activeSidebar(overview, toOverview);
         fetch(`${removeSessionProject}/${projectId}`, { method: 'GET' })
             .then(response => response.json())

@@ -5,7 +5,6 @@ import json
 from django.http import JsonResponse
 
 
-
 # view for user to login
 def login(request):
     to_page = TEMPLATE_PATHS["home"]
@@ -60,23 +59,20 @@ def logout(request):
 # view for user center
 def user_center(request):
     to_page = TEMPLATE_PATHS["user-center"]
-    message = "user center"
-    User.user_center(request.session["username"])
-    return render(request, to_page, {"message": message})
+    return render(request, to_page)
 
+
+# user center get profile
 def user_profile(request):
-    """获取用户信息"""
-    user_id= request.session.get("id")
+    user_id = request.session.get("id")
     try:
-       user = User.objects.get(id=user_id) 
+        user = User.objects.get(id=user_id)
     except:
         return JsonResponse({"error": "User not found"}, status=404)
-     
-    # 统计用户数据
+
+    # count user files and projects
     project_count = User.project(user_id)
     file_count = User.file(user_id)
-    print(f"DEBUG: project_count={project_count}, file_count={file_count}")  # **调试日志**
-    # 组织用户信息
     user_info = {
         "first_name": user.first_name,
         "last_name": user.last_name,
@@ -91,48 +87,51 @@ def user_profile(request):
         "file_count": file_count,
     }
     return JsonResponse(user_info)
-    
 
+
+# user update profile
 def update_profile(request):
     if request.method == "POST":
-        try:
-            # user = request.user  # 获取当前用户
-            user_id= request.session.get("id")
-            user = User.objects.get(username=request.session.get("username")) 
-            print(user_id)    
-            # 更新用户信息
+        try:    
+            # get current user
+            user_id = request.session.get("id")
+            user = User.objects.get(id=user_id)
+            # update
             user.first_name = request.POST.get("first_name", user.first_name)
             user.last_name = request.POST.get("last_name", user.last_name)
+            user.email = request.POST.get("email", user.email)
             user.phone = request.POST.get("phone", user.phone)
             user.gender = request.POST.get("gender", user.gender)
             user.birth = request.POST.get("birth", user.birth)
             user.location = request.POST.get("location", user.location)
             user.introduction = request.POST.get("introduction", user.introduction)
-
-            user.save()  # 保存更改
-            return JsonResponse({"message": "Profile updated successfully!"})
+            user.save()
+            to_page = TEMPLATE_PATHS["user-center"]
+            return render(request, to_page)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+
+# upload photo for user
 def upload_photo(request):
     if request.method == "POST":
         user_id = request.session.get("id")
-
-        # 确保用户已登录
+        # makesure user has login
         if not user_id:
             return JsonResponse({"error": "User not logged in"}, status=403)
-
         try:
             user = User.objects.get(id=user_id)
-
             if "photo" in request.FILES:
                 user.photo = request.FILES["photo"]
                 user.save()
-
-                # 确保返回的 `photo_url` 可被前端使用
-                return JsonResponse({"message": "Profile updated successfully!", "photo_url": user.photo.url})
+                return JsonResponse(
+                    {
+                        "message": "Profile updated successfully!",
+                        "photo_url": user.photo.url,
+                    }
+                )
             else:
                 return JsonResponse({"error": "No file uploaded"}, status=400)
 
@@ -140,5 +139,3 @@ def upload_photo(request):
             return JsonResponse({"error": "User not found"}, status=404)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-
-

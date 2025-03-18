@@ -5,17 +5,16 @@ from django.shortcuts import get_object_or_404, render
 
 from app_file.models import File
 from app_project.models import Project
+from tool.session_check import is_login
 from visualization import settings
 from visualization.settings import TEMPLATE_PATHS
 
-
+# the home page of workspace
 def overview(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     to_page = TEMPLATE_PATHS["overview"]
+    username = request.session.get("username", "guest")
     user_id = request.session.get("id")
     projects = Project.objects.filter(user_id=user_id).order_by("-create")
     data = {
@@ -27,11 +26,8 @@ def overview(request):
 
 # create new project
 def create_project(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     project = Project.create_project(request.session.get("id"))
     # to modify the attribute inside the session not directly modify session
     request.session.modified = True
@@ -48,15 +44,13 @@ def create_project(request):
 
 # open project
 def open_project(request, project_id):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     project = Project.work_search_id(project_id, user_id)
+    to_page = TEMPLATE_PATHS["work-home"]
     if project == None:
-        return render(request, to_page, data)
+        return render(request, to_page)
     request.session.modified = True
     request.session["work_project_list"].append(
         {"id": project.id, "name": project.title}
@@ -71,16 +65,14 @@ def open_project(request, project_id):
 
 # delete project
 def delete_project(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     project_id = json.loads(request.body.decode("utf-8")).get("project_id")
     project = Project.work_search_id(project_id, user_id)
+    to_page = TEMPLATE_PATHS["work-home"]
     if project == None:
-        return render(request, to_page, data)
+        return render(request, to_page)
     project.delete()
     request.session["work_project_list"] = [
         project
@@ -92,15 +84,13 @@ def delete_project(request):
 
 # load project
 def load_project(request, project_id):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     project = Project.load_project(project_id, user_id)
+    to_page = TEMPLATE_PATHS["work-home"]
     if not project:
-        return render(request, to_page, data)
+        return render(request, to_page)
     data = {"project": project}
     to_page = TEMPLATE_PATHS["project"]
     return render(request, to_page, data)
@@ -108,11 +98,8 @@ def load_project(request, project_id):
 
 # choose a file for project
 def choose_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     project_id = request.POST.get("project_id")
     user_id = request.session.get("id")
     file_path = request.POST.get("file_path")
@@ -122,11 +109,8 @@ def choose_file(request):
 
 # save project
 def save_project(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     project_id = request.POST.get("project_id")
     project_title = request.POST.get("project_title")

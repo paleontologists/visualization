@@ -1,0 +1,37 @@
+:root {
+    --aquamarine: #7fffd4;
+}
+.bg-aquamarine {
+    background-color: var(--aquamarine) !important;
+}
+.text-aquamarine {
+    color: var(--aquamarine) !important;
+}
+.btn-aquamarine {
+    background-color: var(--aquamarine);
+    border-color: var(--aquamarine);
+}
+.btn-aquamarine:hover {
+    background-color: #5fd0b1;
+    border-color: #5fd0b1;
+}
+.sidebar {
+    
+    min-height: 100vh;
+    width: 200px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px; 
+}
+.main-content {
+    margin-left: 250px; 
+    padding-top: 56px; 
+}
+.navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 200px; 
+    z-index: 1030;
+}

@@ -4,21 +4,21 @@ from django.http import FileResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 
 from app_file.models import *
+from tool.session_check import is_login
 from visualization import settings
 from visualization.settings import TEMPLATE_PATHS
 
 
 def work_file_manager(request):
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     return render(request, TEMPLATE_PATHS["work-file"])
 
 
 # customer upload their files
 def work_upload_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     uploaded_file = request.FILES["file"]
     user_id = request.session.get("id")
     file = File.upload_file(user_id, uploaded_file)
@@ -27,11 +27,8 @@ def work_upload_file(request):
 
 # customer load their files
 def work_load_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     user_folder = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file")
     if not os.path.exists(user_folder):
@@ -42,11 +39,8 @@ def work_load_file(request):
 
 # customer load their file detail for chart
 def work_detail_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     project_id = request.GET.get("project_id")
     state, json_file = File.load_file(project_id, user_id)
@@ -55,11 +49,8 @@ def work_detail_file(request):
 
 # customer create a folder
 def work_create_folder(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     data = json.loads(request.body.decode("utf-8"))
     relative_path = data.get("path", "").strip()  # Get the requested folder path
@@ -71,11 +62,8 @@ def work_create_folder(request):
 
 # customer move a file or folder to another position
 def work_modify_file_path(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     data = json.loads(request.body.decode("utf-8"))
     old_relative_path = data.get("old_path", "").strip()
@@ -88,11 +76,8 @@ def work_modify_file_path(request):
 
 # customer delete file or folder
 def work_delete_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     data = json.loads(request.body.decode("utf-8"))
     relative_path = data.get("path", "").strip()
@@ -104,24 +89,18 @@ def work_delete_file(request):
 
 # customer download file
 def work_download_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    if username == "guest":
-        return render(request, to_page, data)
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     file_path = request.GET.get("path")
     if not file_path:
         return HttpResponseNotFound("Missing file path")
     user_id = request.session.get("id")
     user = User.objects.get(id=user_id)
     file = str(user_id) + "/file/" + file_path
+    to_page = TEMPLATE_PATHS["work-home"]
     if not File.objects.filter(file=file, user=user).first():  # If None, return early
-        return render(request, to_page, data)
+        return render(request, to_page)
     full_path = os.path.join(settings.MEDIA_ROOT, f"{user_id}/file", file_path)
     if not os.path.exists(full_path):
         return HttpResponseNotFound("File not found: " + full_path)
     return FileResponse(open(full_path, "rb"), as_attachment=True)
-
-
-# test steal file
-# http://127.0.0.1:8000/file/work_download_file?path=\Users\54062\study\internet%20techology\teamproject\media\4/file\author.csv

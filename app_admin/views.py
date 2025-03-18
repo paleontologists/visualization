@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from app_project.models import Project
 from app_file.models import File
 from app_user.models import User
+from tool.session_check import is_admin
 from visualization.settings import TEMPLATE_PATHS
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -14,67 +15,33 @@ def login_admin(request):
 from django.shortcuts import render
 
 def admin_home(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-    
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     return render(request, 'admin/admin-home.html')  
 
 def admin_user(request):
-
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     users = User.objects.all()  # Get all users
     return render(request, 'admin/admin-user.html', {'users': users,'count':users.count()})  # Transfer user data to the template
 
 
 def admin_project(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     projects = Project.objects.all()  
     return render(request, 'admin/admin-project.html', {'projects': projects,'count':projects.count()})  
 
-
-
 def admin_file(request):
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     files = File.objects.all()  
     return render(request, 'admin/admin-file.html', {'files': files,'count':files.count()})  
 
 
 def admin_user_delete(request):
-
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.POST.get("user_id")
     user = get_object_or_404(User, id=user_id)
     user.delete()
@@ -82,6 +49,8 @@ def admin_user_delete(request):
 
 
 def admin_add_user(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         try:
             username = request.POST.get("username")
@@ -107,6 +76,8 @@ def admin_add_user(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 def admin_edit_user(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         user_id = request.POST.get("user_id")
         username = request.POST.get("username")
@@ -131,6 +102,8 @@ def admin_edit_user(request):
 
 
 def admin_project_add(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         username = request.POST.get("username")  
         title = request.POST.get("title")
@@ -154,7 +127,8 @@ def admin_project_add(request):
 
 
 def admin_project_delete(request):
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     to_page = TEMPLATE_PATHS["home"]
     username = request.session.get("username", "guest")
     data = {"username": username}
@@ -169,6 +143,8 @@ def admin_project_delete(request):
     return JsonResponse({"message": "Project deleted successfully"}, status=200)
 
 def admin_edit_project(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         project_id = request.POST.get("project_id")
         title = request.POST.get("title")
@@ -186,6 +162,8 @@ def admin_edit_project(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 def admin_file_add(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST" and request.FILES.get("file"):
         title = request.POST.get("title")
         description = request.POST.get("description", "")
@@ -211,21 +189,16 @@ def admin_file_add(request):
 
 
 def admin_file_delete(request):
-
-    to_page = TEMPLATE_PATHS["home"]
-    username = request.session.get("username", "guest")
-    data = {"username": username}
-    id = request.session.get("id", "guest")
-    user = get_object_or_404(User, id=id)
-    if user.group != "admin":
-        return render(request, to_page, data)
-
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     file_id = request.POST.get("file_id")
     file = get_object_or_404(File, id=file_id)
     file.delete()
     return JsonResponse({"message": "File deleted successfully"}, status=200)
 
 def admin_edit_file(request):  
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         try:
             file_id = request.POST.get("file_id")
@@ -255,13 +228,19 @@ def admin_edit_file(request):
 
 
 def admin_user_count(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_count = User.objects.count()  
     return JsonResponse({"user_count": user_count})  
 
 def admin_project_count(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     project_count = Project.objects.count()  
     return JsonResponse({"project_count": project_count})  
 
 def admin_file_count(request):
+    if not is_admin(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     file_count = File.objects.count()  
     return JsonResponse({"file_count": file_count})  

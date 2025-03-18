@@ -14,6 +14,5 @@ urlpatterns = [
         "remove_session_project/<int:project_id>/",
         remove_session_project,
         name="remove-session-project",
-    ),
-    path("history", view=history, name="history"),
+    )
 ]

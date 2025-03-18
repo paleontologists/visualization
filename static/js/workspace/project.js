@@ -2,6 +2,19 @@
 window.onload = function () {
     loadFileDetail(projectId);
 };
+
+let projectId;
+let projectTitle;
+let projectDescription;
+let projectEchartsConfig = {}
+document.addEventListener("DOMContentLoaded", function () {
+    projectId = document.getElementById("project_id").value;
+    projectTitle = document.getElementById("project_title").value;
+    projectDescription = document.getElementById("project_description").value;
+    try { projectEchartsConfig = JSON.parse(document.getElementById("project_echarts_config").textContent.trim()); }
+    catch (error) { }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     const chartDom = document.getElementById("chart");
     chart = echarts.init(chartDom);
@@ -129,7 +142,7 @@ function initializeChart() {
             updateChart(); // Try updating the chart
         } catch (error) {
             alert("Chart type not suitable. Reverting to previous selection.");
-            window.location.href = projectUrl;
+            window.location.href = loadProjectUrl;
         }
     });
     // Set X and Y axis selections
