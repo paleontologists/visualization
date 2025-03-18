@@ -71,6 +71,12 @@ def user_profile(request):
        user = User.objects.get(id=user_id) 
     except:
         return JsonResponse({"error": "User not found"}, status=404)
+     
+    # 统计用户数据
+    project_count = User.project(user_id)
+    file_count = User.file(user_id)
+    print(f"DEBUG: project_count={project_count}, file_count={file_count}")  # **调试日志**
+    # 组织用户信息
     user_info = {
         "first_name": user.first_name,
         "last_name": user.last_name,
@@ -81,9 +87,11 @@ def user_profile(request):
         "location": user.location,
         "introduction": user.introduction,
         "profile_photo": user.photo.url if user.photo else None,
+        "project_count": project_count,
+        "file_count": file_count,
     }
     return JsonResponse(user_info)
-
+    
 
 def update_profile(request):
     if request.method == "POST":

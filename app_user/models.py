@@ -82,3 +82,24 @@ class User(models.Model):
             fail_silently=False,
         )
         print("send to ", email)
+
+    @classmethod
+    def project(cls, user_id):
+        """获取用户的项目数量"""
+        from app_project.models import Project
+        try:
+            return Project.objects.filter(user_id=user_id).count()
+        except Exception as e:
+            print(f"Error fetching projects: {e}")
+            return 0  # 避免 None 值
+
+    @classmethod
+    def file(cls, user_id):
+        """获取用户的文件数量"""
+        from app_file.models import File
+        try:
+            return File.objects.filter(user_id=user_id).count()
+        except Exception as e:
+            print(f"Error fetching files: {e}")
+            return 0  # 避免 None 值
+       
