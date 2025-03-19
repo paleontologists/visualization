@@ -1,4 +1,3 @@
-import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -8,11 +7,6 @@ from app_user.models import User
 from tool.session_check import is_admin
 from visualization.settings import TEMPLATE_PATHS
 from django.contrib.auth.hashers import make_password, check_password
-
-def login_admin(request):
-    return render(request)
-
-from django.shortcuts import render
 
 def admin_home(request):
     if not is_admin(request):

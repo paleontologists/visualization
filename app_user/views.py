@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from app_user.models import User
+from tool.session_check import is_login
 from visualization.settings import TEMPLATE_PATHS
 import json
 from django.http import JsonResponse
@@ -64,6 +65,8 @@ def user_center(request):
 
 # user center get profile
 def user_profile(request):
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     user_id = request.session.get("id")
     try:
         user = User.objects.get(id=user_id)
@@ -91,6 +94,8 @@ def user_profile(request):
 
 # user update profile
 def update_profile(request):
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         try:    
             # get current user
@@ -116,6 +121,8 @@ def update_profile(request):
 
 # upload photo for user
 def upload_photo(request):
+    if not is_login(request):
+        return render(request, TEMPLATE_PATHS["home"], {"username": request.session.get("username", "guest")})
     if request.method == "POST":
         user_id = request.session.get("id")
         # makesure user has login

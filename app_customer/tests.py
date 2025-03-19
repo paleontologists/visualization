@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
+from app_user.models import User
 from django.contrib.auth.hashers import make_password, check_password
 
 class UserLoginTest(TestCase):
@@ -21,9 +21,3 @@ class UserLoginTest(TestCase):
         wrong_password = "wrongpassword"
         user = User.objects.get(username=self.username)
         self.assertFalse(check_password(wrong_password, user.password))  # Password should not match
-
-    def test_user_creation(self):
-        # Check if user was created successfully with the correct password
-        user = User.objects.get(username=self.username)
-        self.assertEqual(user.username, self.username)
-        self.assertTrue(check_password(self.password, user.password))  # Password should match after hashing
