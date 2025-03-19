@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let formData = new FormData(addfileForm);  // Get form data
 
-        fetch("{% url 'admin-file-add' %}", {  // Ensure that this URL exists in Django urls.py
+        fetch(adminFileUploadUrl, {  // Ensure that this URL exists in Django urls.py
             method: "POST",
             headers: {
                 "X-CSRFToken": csrftoken  // Django CSRF protect
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("file_id", editFileId);
 
         // Send a request to the Django server
-        fetch("{% url 'admin-edit-file' %}", {
+        fetch(adminFileEditUrl, {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrftoken
