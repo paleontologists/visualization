@@ -29,7 +29,7 @@ class File(models.Model):
     def get_file_by_path(cls, full_path, user_id):
         try:
             user = User.objects.get(id=user_id)
-            return File.objects.get(file=full_path, user=user)
+            return File.objects.filter(file=full_path, user=user).first()
         except Exception as e:
             return None
 
